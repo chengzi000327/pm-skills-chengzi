@@ -1,30 +1,20 @@
 # pm-skills-chengzi
 
-Personal Claude Code PM skills collection.
+个人 Claude Code PM 技能合集。
 
-## Install
+## 安装
 
 ```
 /plugin install pm-skills-chengzi
 ```
 
-## Skills
+## 包含内容
 
-50+ domain-specific skills covering:
-- PRD writing & product requirements
-- Discovery & user research
-- Strategy & roadmap planning
-- Prioritization & execution
-- Market research & competitive analysis
-- Go-to-market & growth
+- **write-prd**：自定义 PRD 写作流程，通过链式调用多个 skill 生成决策级产品需求文档
+- **prd-development**：结构化 PRD 构建 workflow，连接问题定义、用户研究、解决方案与成功标准
 
-## Commands
+## 使用方式
 
-| Command | Description |
-|---------|-------------|
-| `/write-prd` | Create a decision-ready PRD |
-| `/discover` | Run a discovery workflow |
-| `/strategy` | Product strategy session |
-| `/plan-roadmap` | Build a roadmap |
-| `/prioritize` | Prioritization framework |
-| `/leadership-transition` | Leadership transition playbook |
+| 命令 | 说明 |
+|------|------|
+| `/write-prd` | 从功能描述或问题陈述生成完整 PRD |
