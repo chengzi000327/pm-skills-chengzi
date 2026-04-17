@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "pm-skills-chengzi",
   "version": "1.0.0",
-  "description": "Personal PM skills collection by chengzi — product discovery, strategy, execution, and more.",
+  "description": "Personal PM skills by chengzi — custom PRD writing workflow.",
   "owner": {
     "name": "chengzi000327",
     "url": "https://github.com/chengzi000327"
@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "pm-skills-chengzi",
-      "description": "Full personal PM skill set: PRD writing, discovery, strategy, roadmap planning, prioritization, and 50+ domain-specific skills.",
+      "description": "Custom PRD writing skills: write-prd command and prd-development workflow.",
       "source": "./pm-skills-chengzi",
       "category": "product-management"
     }

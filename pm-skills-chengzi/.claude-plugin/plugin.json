@@ -1,7 +1,7 @@
 {
   "name": "pm-skills-chengzi",
   "version": "1.0.0",
-  "description": "Full personal PM skill set: PRD writing, discovery, strategy, roadmap planning, prioritization, and 50+ domain-specific skills.",
+  "description": "Custom PRD writing skills: write-prd command and prd-development workflow.",
   "author": {
     "name": "chengzi000327",
     "url": "https://github.com/chengzi000327"
@@ -9,10 +9,7 @@
   "keywords": [
     "product-management",
     "prd",
-    "discovery",
-    "strategy",
-    "roadmap",
-    "prioritization"
+    "requirements"
   ],
   "license": "MIT"
 }
