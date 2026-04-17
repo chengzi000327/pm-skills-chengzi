@@ -1,0 +1,11 @@
+{
+  "name": "product-decision",
+  "version": "1.0.0",
+  "description": "系统性地思考和判断产品方向与立项决策，覆盖方向验证和立项决策两个阶段。",
+  "author": {
+    "name": "chengzi000327",
+    "url": "https://github.com/chengzi000327"
+  },
+  "keywords": ["product-management", "decision", "strategy"],
+  "license": "MIT"
+}
