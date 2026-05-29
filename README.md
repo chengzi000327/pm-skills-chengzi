@@ -8,6 +8,7 @@
 |-------|------|
 | `prd-writer` | 帮助产品经理撰写高质量 PRD，支持 Agent/AI 类、普通后端、纯交互前端三类功能 |
 | `product-decision` | 系统性判断产品方向与立项决策，覆盖方向验证和 AREA 五层分析 |
+| `idea-to-frontend` | 把粗略产品想法推进为有风格方向、线框确认和可预览代码的前端页面 |
 
 ## 安装方式
 
@@ -17,4 +18,5 @@ cd pm-skills-chengzi
 
 cp -r prd-writer ~/.claude/skills/
 cp -r product-decision ~/.claude/skills/
+cp -r idea-to-frontend ~/.claude/skills/
 ```
