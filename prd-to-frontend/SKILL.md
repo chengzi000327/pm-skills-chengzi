@@ -1,11 +1,21 @@
 ---
 name: idea-to-frontend
-description: Use when turning a product idea or requirement into a designed, previewable frontend page, including landing pages, marketing sites, product websites, app screens, dashboards, and requests like "做个页面/界面/落地页/官网" or "先定设计风格". Use even when the idea is rough and needs clarification before design or code.
+description: Use when turning a PRD v0 plus two diagrams and one table, clarified product direction, or explicit frontend request into a designed, previewable page, including landing pages, marketing sites, product websites, app screens, dashboards, and requests like "做个页面/界面/落地页/官网" or "先定设计风格". If product definition artifacts are missing, use idea-to-prd first.
 ---
 
 # Idea → Frontend(从想法到前端页面)
 
-把一个还很粗的想法,经过四个阶段做成有设计感、可预览的前端页面。覆盖两类界面:**落地页 / 营销官网**(设计本身就是产品)和 **App / 产品功能界面**(设计服务于功能)——这两类的设计逻辑不同,在阶段 1 会区分对待。
+把一个产品方向足够清楚的想法,经过四个阶段做成有设计感、可预览的前端页面。覆盖两类界面:**落地页 / 营销官网**(设计本身就是产品)和 **App / 产品功能界面**(设计服务于功能)——这两类的设计逻辑不同,在阶段 1 会区分对待。
+
+本 skill 不替代 PRD。PRD 负责定义问题、收敛方案、记录取舍、暴露边界、形成验收共识;前端页面负责验证产品表达、信息架构和交互路径。更顺的工作流是:
+
+```
+想法 -> 问题定义 -> Samples/Eval -> 共同能力 -> PRD v0+两图一表 -> PRD-to-Frontend -> Frontend-to-PRD -> 实现规格/开发计划
+```
+
+如果用户只有一个很粗的想法,或缺少 PRD v0 / Samples/Eval / 原型草图 / 流程状态图 / 数据表,先用阶段 0 判断信息是否足够。信息不足时,不要直接进入风格设计;先引导用户补齐问题定义或转入 `idea-to-prd`。
+
+进入本阶段后,前端不是凭空探索样式,而是用 PRD v0 + Samples/Eval + 两图一表做**场景化原型探索**。样式风格仍然要探索,但界面模块、demo 内容、状态覆盖和交互校验都必须回到 samples。
 
 最终代码形态**按项目选**:简单页面用单文件 HTML + Tailwind(预览最快),组件化/有状态的用 React。风格**每个项目重新定**,不用固定 house style。
 
@@ -14,19 +24,21 @@ description: Use when turning a product idea or requirement into a designed, pre
 最常见的失败模式是:用户给一句想法,模型脑补一套需求就直接开始写一整页代码,结果方向全错。本 skill 的价值就在于**用四个门挡住这种冲动**。每个阶段结束都要停下来等用户确认,确认了才进下一阶段。
 
 ```
-阶段0 发现访谈  ──门0──>  阶段1 定风格(给2-3个方向)  ──门1──>  阶段2 ASCII线框  ──门2──>  阶段3 落地代码  ──>  交付前自检
+阶段0 PRD充足度检查+发现访谈  ──门0──>  阶段1 定风格(给2-3个方向)  ──门1──>  阶段2 ASCII线框  ──门2──>  阶段3 落地代码  ──>  交付前自检
 ```
 
 - **门 0 / 门 1 / 门 2 是硬门**:没拿到用户明确的"就这个方向 / 继续"之前,不要往下做。把自己写的总结当成用户的确认,是要避免的。
 - 如果用户明确说"别问了直接做"或需求已经很完整,可以压缩前面的阶段,但**至少要在写代码前把风格方向和线框口头过一遍**。
+- **PRD 信息不足也是硬门**:如果目标用户、问题、核心流程、功能范围、成功标准、Samples/Eval 或两图一表缺失,先补 PRD/问题定义,不要用视觉风格掩盖产品逻辑缺口。
+- **Samples 是界面 demo 和状态校验用例**:阶段 2 线框和阶段 3 代码必须选取 3-5 个 sample 作为页面中的真实演示数据,并覆盖正常、缺信息、冲突、高风险、失败等关键状态。
 
 ---
 
-## 阶段 0:发现访谈
+## 阶段 0:PRD 充足度检查 + 发现访谈
 
-目标:在画任何东西之前,搞清楚"做什么、给谁看、最想让访客做什么动作、什么气质、最讨厌什么样子"。
+目标:在画任何东西之前,先判断产品逻辑是否足够支撑前端探索,再搞清楚"做什么、给谁看、最想让访客做什么动作、什么气质、最讨厌什么样子"。
 
-完整问题清单和提问方式见 `references/discovery.md`,**进入本阶段时先读它**。核心是几个绕不开的点:这是落地页还是产品界面、产品一句话是什么、目标用户、希望访客完成的那一个动作(CTA)、品牌气质词、以及 **anti-reference(最讨厌的同类页面长什么样)**。
+完整问题清单和提问方式见 `references/discovery.md`,**进入本阶段时先读它**。先做 PRD 充足度检查:目标用户、核心问题、核心流程/场景、功能范围、成功标准、Samples/Eval、原型草图、流程/状态图、数据表至少要基本明确。缺其中两项以上时,先暂停 frontend 流程,提示用户补 PRD v0 + Samples/Eval + 两图一表或转入 `idea-to-prd`。只有产品逻辑足够清楚,才继续问界面类型、产品一句话、CTA、品牌气质词、以及 **anti-reference(最讨厌的同类页面长什么样)**。
 
 提问时一次别问太多,优先用选择题降低用户负担(在 claude.ai 移动端尤其如此)。问完做一句话的需求复述,这就是**门 0**:用户点头才进阶段 1。
 
@@ -56,6 +68,8 @@ description: Use when turning a product idea or requirement into a designed, pre
 
 线框确认是**门 2**:用户点头才写代码。
 
+线框必须明确样本如何落到界面:用哪几个 sample 作为 demo 内容,每个 sample 触发哪个模块、状态、CTA 或错误提示。对产品功能界面,要显式画出至少一个正常样本和 2-4 个关键异常/边界样本。
+
 ---
 
 ## 阶段 3:落地代码
@@ -68,11 +82,17 @@ description: Use when turning a product idea or requirement into a designed, pre
 
 落地时严格执行阶段 1 定下的风格,不要中途漂回"通用现代 SaaS"那套。把字体真的引进来、配色用 CSS 变量统一、该有的动效和细节做到位。
 
+落地代码里的演示数据要来自 Samples/Eval,不要临时编无关 mock。界面状态校验也以 sample 为准:每个关键 sample 都应能在页面上找到对应入口、展示结果、用户动作和状态反馈。
+
 ---
 
 ## 交付前自检(每次给代码前都过一遍)
 
 写完代码、给用户之前,**对照 `references/anti-slop.md` 的清单逐条自检**。这一步是最后一道反 AI slop 的关卡:被点名的字体、配色 tell、版式 tell、对比度、可点击元素的 cursor、reduced-motion、响应式断点、别拿 emoji 当图标等等。自检发现问题就地改掉再交付。
+
+同时做 **Sample 状态自检**:逐条检查阶段 0 选定的 3-5 个 sample 是否都能在界面里跑通。常见 AI 客服/工单类界面至少覆盖:缺少订单信息、政策冲突、高风险升级、生成失败;其他产品按自己的 Rubric 风险点映射状态。
+
+同时输出一份 **PRD 反哺清单**:界面探索过程中暴露出来的信息架构调整、流程缺口、状态补充、边界条件、文案假设和指标变化。它是后续进入 `prd-writer` 写 PRD v1 的输入。
 
 ---
 
