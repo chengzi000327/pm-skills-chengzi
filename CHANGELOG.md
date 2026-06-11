@@ -5,7 +5,12 @@
 
 ## [Unreleased]
 
-- 新增 `CLAUDE.md`（仓库级 AI 上下文：不变量、验证方法、发布流程）和本 CHANGELOG。
+## [1.0.1] - 2026-06-11
+
+- 新增 `CLAUDE.md`（仓库级 AI 上下文：不变量、验证方法、发布流程）和本 CHANGELOG，
+  作为跨会话/跨 AI 的维护记忆。
+- README 安装说明更新为已发布的 npm 包用法（`npx pm-skills-chengzi install`）——
+  1.0.0 包里的 README 还是发布前的 GitHub 安装写法，本版修正。
 
 ## [1.0.0] - 2026-06-11
 
