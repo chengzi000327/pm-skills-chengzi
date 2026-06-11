@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vibe Coding Spec"
+  short_description: "Turn ideas into spec-driven, quality-gated implementation workflows."
+  default_prompt: "Use the vibe-coding-spec skill to turn this feature idea into spec, clarify, research, data model, contracts, plan, tasks, checklist, and quality gate artifacts."

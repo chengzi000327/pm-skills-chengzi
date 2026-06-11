@@ -10,6 +10,7 @@
 | `idea-to-prd` | 把粗略产品想法通过多轮追问梳理成 PRD v0 / 产品定义稿，并产出 Samples/Eval 与两图一表 |
 | `idea-to-frontend` | 把 PRD v0 + Samples/Eval + 两图一表推进为风格方向、线框确认和可预览代码 |
 | `prd-writer` | 把 PRD v0、Samples/Eval、两图一表与原型探索结果整理成完整交付型 PRD；主流程在 `SKILL.md`，详细模块写法放在 `references/` |
+| `vibe-coding-spec` | 把想法或完整 PRD 接入 spec-kit 式规格驱动流程，生成 PRD source traceability、feature spec、technical plan、tasks、test matrix、release gate，并结合 vibe-coding 工程规范和 superpower 执行纪律 |
 
 ## 推荐工作流
 
@@ -30,7 +31,7 @@
 5. **PRD v0 + 两图一表**：锁住产品逻辑，并产出原型草图、流程/状态图、数据表，让 AI 快速理解模块结构、业务流转和评价标准。没有 3-5 个 sample，不输出 PRD v0。
 6. **PRD-to-Frontend**：基于 PRD v0 + Samples/Eval + 两图一表做前端/原型探索，用 sample 作为界面 demo 场景和状态校验用例，检查信息架构、CTA、用户路径、空状态、异常状态、边界状态和文案表达。
 7. **Frontend-to-PRD**：把原型探索暴露的问题反哺进 PRD，补齐页面结构、交互流程、状态规则、字段定义、权限、边界条件和验收标准。
-8. **实现规格/开发计划**：进入技术实现、任务拆分、接口、组件和测试。
+8. **实现规格/开发计划**：把想法或完整 PRD 输入 `vibe-coding-spec`，进入 PRD source preservation、traceability、feature spec、technical plan、任务拆分、接口、组件、测试矩阵和 release gate。
 
 这个时代的 PRD 至少应该包含：
 
@@ -51,6 +52,54 @@
 - `idea-to-prd`：负责从粗想法进入多轮追问，产出 PRD v0 / 产品定义稿 + Samples/Eval + 两图一表；没有 3-5 个 sample 时不输出 PRD v0。
 - `idea-to-frontend`：负责 PRD-to-Frontend，把 PRD v0 + Samples/Eval + 两图一表变成风格、线框和可预览界面；samples 必须作为 demo 场景和状态校验用例。
 - `prd-writer`：负责 Frontend-to-PRD，把 PRD v0、Samples/Eval、两图一表与前端/原型探索结果整理成完整 PRD v1 / 交付型 PRD，并把 Metric 转成验收标准、埋点和测试集；详细模板拆在 `references/`，按 Agent/AI、普通功能、前端交互、两图一表、Metric 映射分别读取。
+- `vibe-coding-spec`：负责把想法或完整 PRD 推进为 `prd-source.md`、`traceability.md`、constitution、feature spec、clarify、research、data model、contracts、quickstart、technical plan、checkbox task plan、test matrix、release gate，并约束目录分层、adapter 边界、证据沉淀、多子 agent ownership 和 superpower-style 执行纪律。
+
+## PRD 到实现规格
+
+`vibe-coding-spec` 支持两种入口：
+
+1. **Idea-first**：输入仍是一个想法或功能方向，由 skill 通过 clarify 和 brainstorming 扩展成规格包。
+2. **PRD-first**：输入是 `prd-writer` 产出的完整 PRD v1 / 交付型 PRD，或已有 PRD 文档。skill 会先保留原文，再把 PRD section 映射到需求、测试、任务和证据。
+
+从想法创建规格包：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Feature name" --version V0.1
+```
+
+从完整 PRD 创建规格包：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --prd docs/product/prd.md --version V0.1
+```
+
+指定 PRD 对应的 feature 名：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Billing Rules" --prd docs/product/billing-prd.md --version V1.0
+```
+
+PRD-first 会生成：
+
+- `specs/###-feature/prd-source.md`：保留 PRD 来源、section index 和原文快照。
+- `specs/###-feature/traceability.md`：建立 `PRD-S### -> FR/SC/User Story/TC/Task/Evidence` 映射。
+- `specs/###-feature/spec.md`：把 PRD 归一化为 implementation-neutral feature spec。
+- `specs/###-feature/clarify.md`：只追问阻塞 plan 的问题；非阻塞问题进入 assumptions/risks/deferred。
+- `specs/###-feature/research.md`、`data-model.md`、`contracts/`、`quickstart.md`：承接 PRD 里的技术不确定性、数据/状态、接口契约和验证路径。
+
+实现前运行分析：
+
+```bash
+python3 vibe-coding-spec/scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1
+```
+
+刷新 checklist：
+
+```bash
+python3 vibe-coding-spec/scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1 --write-checklist
+```
+
+如果 PRD 包含多个独立交付价值，先拆成多个 `specs/###-slug/` feature pack；如果多个模块共享同一个 foundation 且无法独立验收，则保留一个 feature pack，并在 `tasks.md` 里用 phases、dependencies 和 `[P]` parallel ownership 管理。
 
 ## 安装方式
 
@@ -62,4 +111,5 @@ cp -r prd-writer ~/.claude/skills/
 cp -r product-decision ~/.claude/skills/
 cp -r idea-to-prd ~/.claude/skills/
 cp -r idea-to-frontend ~/.claude/skills/
+cp -r vibe-coding-spec ~/.claude/skills/
 ```

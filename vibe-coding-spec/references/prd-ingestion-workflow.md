@@ -1,0 +1,102 @@
+# PRD Ingestion Workflow
+
+## 两种入口
+
+Idea-first：
+
+- 输入是短想法、方向、用户问题或功能描述。
+- 先通过 brainstorming 和 clarify 扩展为 `spec.md`。
+- `prd-source.md` 记录为 idea input。
+
+PRD-first：
+
+- 输入是完整 PRD、PRD v0/v1、产品定义稿、Samples/Eval、两图一表、原型探索总结。
+- 先做 ingestion，不要直接进入 plan。
+- 保留原文到 `prd-source.md`，再生成 `traceability.md`。
+
+## PRD-first 标准流程
+
+1. Preserve source
+   - 保存原 PRD 路径或快照。
+   - 不要在归一化时覆盖原文。
+
+2. Normalize
+   - 抽取 `Background`、`Users`、`Scenarios`、`Goals`、`Non-goals`。
+   - 抽取 `Functional Requirements`、`Non-functional Requirements`、`Success Criteria`。
+   - 抽取 `Samples/Eval`、`Rubric`、`Metric`、`Protocol`。
+   - 抽取 `Data`、`State`、`Permissions`、`Edge Cases`、`Risks`。
+   - 抽取 `Prototype / Flow / State Diagram / Data Table` 信息。
+
+3. Split or keep
+   - 如果 PRD 包含多个可独立交付的用户价值，拆成多个 `specs/###-slug/`。
+   - 如果多个模块共享同一 foundation，但不能独立验收，保留一个 feature pack，并在 `tasks.md` 用 phases 管理。
+   - 如果 PRD 包含平台改造和产品功能，优先拆分为 platform foundation feature 和 product-facing feature。
+
+4. Trace
+   - 每个 PRD section 生成 `PRD-S###`。
+   - 每个 `PRD-S###` 必须映射到：
+     - `FR-###`
+     - `SC-###`
+     - user story
+     - `TC-###`
+     - task ID
+     - evidence ref
+     - 或明确的 `out-of-scope` / `deferred` / `duplicate`
+
+5. Clarify
+   - PRD-first 只问 blocking questions。
+   - 非阻塞问题写入 assumptions、risks 或 deferred。
+   - 每轮最多 5 个问题。
+
+6. Convert Samples/Eval
+   - Samples 进入 `quickstart.md` 和测试场景。
+   - Rubric 进入 `TEST_MATRIX.md` acceptance。
+   - Metric 进入 `SC-###` 和 release gate。
+   - Judge/Evaluator/Protocol 进入 `research.md` 或 `contracts/`。
+
+## PRD 拆分规则
+
+拆分为多个 feature pack，当满足任一条件：
+
+- 有多个互不依赖的 P0 user journeys。
+- 有独立上线或回滚边界。
+- 涉及不同 owner 或不同代码区域。
+- 一个 PRD 同时包含平台能力、前端体验、后台配置、数据分析等差异很大的模块。
+
+保留一个 feature pack，当满足任一条件：
+
+- 所有用户故事共享同一个数据模型和 release gate。
+- 任意单独拆出都不能独立验证用户价值。
+- 需求处于早期探索，拆分会制造假确定性。
+
+## PRD 模糊表达处理
+
+中文 PRD 常见模糊词：
+
+- 高效、稳定、易用、安全、灵活、完善、尽快、快速、智能、自动、优化、提升体验、体验好、可扩展、高质量。
+
+处理方式：
+
+- 转成 measurable `SC-###`。
+- 转成 Given/When/Then acceptance。
+- 如果无法转，写入 `clarify.md` 的 blocking 或 non-blocking ambiguity。
+
+## CLI
+
+从 idea 创建：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Feature name" --version V0.1
+```
+
+从 PRD 创建：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --prd docs/product/prd.md --version V0.1
+```
+
+PRD + 指定 feature 名：
+
+```bash
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Billing Rules" --prd docs/product/billing-prd.md --version V1.0
+```
