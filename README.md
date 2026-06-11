@@ -57,12 +57,18 @@ npx pm-skills-chengzi uninstall                        # 全部卸载
 
 ## 详细文档
 
-每个 skill 的完整用法、工作流和模板都在各自目录的 `SKILL.md` 和 `references/` 里。`vibe-coding-spec` 另带两个脚本：
+每个 skill 的完整用法、工作流和模板都在各自目录的 `SKILL.md` 和 `references/` 里。`vibe-coding-spec` 默认在对话中完成审查，不自动落盘文件；需要持久化规格包时可手动使用脚本：
 
 ```bash
-# 从想法或 PRD 创建规格包
+# 从想法或 PRD 创建轻量规格包
 python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Feature" --version V0.1
 python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --prd docs/prd.md --version V0.1
+
+# 需要 compact review.md、release gate 和 evidence 目录时
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Feature" --version V0.1 --full
+
+# 需要合规/审计/正式发布证据链时
+python3 vibe-coding-spec/scripts/scaffold_vibe_feature.py --root . --name "Feature" --version V0.1 --audit
 
 # 实现前一致性分析
 python3 vibe-coding-spec/scripts/check_vibe_structure.py --root . --feature 001-feature --version V0.1

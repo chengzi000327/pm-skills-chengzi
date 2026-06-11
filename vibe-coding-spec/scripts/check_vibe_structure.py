@@ -16,7 +16,6 @@ RECOMMENDED_DIRS = [
     "platform/providers",
     "scripts/certification",
     "test",
-    "quality",
     "specs",
 ]
 
@@ -46,6 +45,15 @@ class Finding:
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def first_existing(canonical: Path, *legacy: Path) -> Path:
+    if canonical.exists():
+        return canonical
+    for path in legacy:
+        if path.exists():
+            return path
+    return canonical
 
 
 def extract_ids(pattern: re.Pattern[str], text: str) -> set[str]:
@@ -157,7 +165,7 @@ def add_finding(findings: list[Finding], category: str, severity: str, location:
     findings.append(Finding(f"{prefix}{count}", category, severity, location, summary, recommendation))
 
 
-def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str) -> tuple[list[Finding], dict[str, object]]:
+def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str, profile: str = "auto") -> tuple[list[Finding], dict[str, object]]:
     findings: list[Finding] = []
     if feature_dir is None:
         add_finding(
@@ -170,25 +178,67 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
         )
         return findings, {}
 
-    quality_dir = root / "quality" / quality_version
+    review_dir = feature_dir / "review"
+    legacy_quality_dir = root / "quality" / quality_version
+    audit_dir = feature_dir / "audit"
     artifacts = {
-        "prd_source": feature_dir / "prd-source.md",
-        "traceability": feature_dir / "traceability.md",
+        "prd_source": first_existing(feature_dir / "source" / "prd.md", feature_dir / "prd-source.md"),
+        "traceability": first_existing(feature_dir / "source" / "traceability.md", feature_dir / "traceability.md"),
         "spec": feature_dir / "spec.md",
-        "clarify": feature_dir / "clarify.md",
-        "research": feature_dir / "research.md",
-        "data_model": feature_dir / "data-model.md",
-        "contracts": feature_dir / "contracts" / "README.md",
-        "quickstart": feature_dir / "quickstart.md",
-        "checklist": feature_dir / "CHECKLIST.md",
+        "review": feature_dir / "review.md",
+        "clarify": first_existing(feature_dir / "review.md", review_dir / "clarify.md", feature_dir / "clarify.md"),
+        "research": first_existing(feature_dir / "plan.md", feature_dir / "design" / "research.md", feature_dir / "research.md"),
+        "data_model": first_existing(feature_dir / "plan.md", feature_dir / "design" / "data-model.md", feature_dir / "data-model.md"),
+        "contracts": first_existing(feature_dir / "plan.md", feature_dir / "design" / "contracts.md", feature_dir / "contracts" / "README.md"),
+        "quickstart": first_existing(feature_dir / "plan.md", feature_dir / "design" / "quickstart.md", feature_dir / "quickstart.md"),
+        "checklist": first_existing(feature_dir / "review.md", review_dir / "checklist.md", feature_dir / "CHECKLIST.md"),
         "plan": feature_dir / "plan.md",
         "tasks": feature_dir / "tasks.md",
-        "matrix": quality_dir / "TEST_MATRIX.md",
-        "gate": quality_dir / "RELEASE_GATE.md",
+        "matrix": first_existing(feature_dir / "review.md", review_dir / "test-matrix.md", legacy_quality_dir / "TEST_MATRIX.md"),
+        "gate": first_existing(feature_dir / "review.md", review_dir / "release-gate.md", legacy_quality_dir / "RELEASE_GATE.md"),
+        "audit_traceability": audit_dir / "traceability.md",
+        "audit_matrix": audit_dir / "test-matrix.md",
+        "audit_gate": audit_dir / "release-gate.md",
+        "audit_decisions": audit_dir / "decision-log.md",
     }
 
+    if profile == "auto":
+        audit_markers = [
+            audit_dir / "traceability.md",
+            audit_dir / "test-matrix.md",
+            audit_dir / "release-gate.md",
+            audit_dir / "decision-log.md",
+        ]
+        full_markers = [
+            feature_dir / "review.md",
+            review_dir / "clarify.md",
+            review_dir / "checklist.md",
+            review_dir / "test-matrix.md",
+            review_dir / "release-gate.md",
+            feature_dir / "design" / "research.md",
+            feature_dir / "design" / "data-model.md",
+            feature_dir / "design" / "contracts.md",
+            feature_dir / "design" / "quickstart.md",
+            legacy_quality_dir / "TEST_MATRIX.md",
+            legacy_quality_dir / "RELEASE_GATE.md",
+        ]
+        if any(path.exists() for path in audit_markers):
+            active_profile = "audit"
+        elif any(path.exists() for path in full_markers):
+            active_profile = "full"
+        else:
+            active_profile = "lite"
+    else:
+        active_profile = profile
+
+    required_artifacts = {"spec", "plan", "tasks"}
+    if active_profile in {"full", "audit"}:
+        required_artifacts.update({"review"})
+    if active_profile == "audit":
+        required_artifacts.update({"audit_traceability", "audit_matrix", "audit_gate", "audit_decisions"})
+
     for name, path in artifacts.items():
-        if not path.exists():
+        if name in required_artifacts and not path.exists():
             add_finding(
                 findings,
                 "missing",
@@ -214,7 +264,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             continue
         covered_by_plan = req in plan_reqs or req in task_reqs or req in matrix_reqs
         covered_by_task = req in task_reqs
-        covered_by_matrix = req in matrix_reqs
+        covered_by_matrix = req in matrix_reqs if active_profile in {"full", "audit"} else True
         if not covered_by_plan:
             add_finding(
                 findings,
@@ -229,7 +279,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             if not covered_by_task:
                 missing.append("tasks.md")
             if not covered_by_matrix:
-                missing.append("TEST_MATRIX.md")
+                missing.append("review/test-matrix.md")
             add_finding(
                 findings,
                 "coverage",
@@ -240,13 +290,13 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             )
 
     for case in sorted(matrix_cases):
-        if case not in task_cases and case.lower() not in texts["tasks"].lower():
+        if active_profile in {"full", "audit"} and case not in task_cases and case.lower() not in texts["tasks"].lower():
             add_finding(
                 findings,
                 "coverage",
                 "MEDIUM",
                 f"{artifacts['matrix'].relative_to(root)}:L{line_for(texts['matrix'], case)}",
-                f"{case} is in TEST_MATRIX.md but no task references it.",
+                f"{case} is in review/test-matrix.md but no task references it.",
                 "Reference the test case in the task that creates or verifies its evidence.",
             )
 
@@ -257,7 +307,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
                 "prd",
                 "HIGH",
                 f"{artifacts['prd_source'].relative_to(root)}:L{line_for(texts['prd_source'], source_id)}",
-                f"{source_id} appears in prd-source.md but not traceability.md.",
+                f"{source_id} appears in source/prd.md but not source/traceability.md.",
                 "Add a traceability row mapping the PRD section to FR, user story, test case, task, or out-of-scope rationale.",
             )
 
@@ -274,7 +324,14 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
                 "Map the source row to concrete FR/US/TC/task IDs or mark it out-of-scope/deferred with rationale.",
             )
 
-    for name in ("prd_source", "traceability", "spec", "clarify", "research", "data_model", "contracts", "quickstart", "checklist", "plan", "tasks", "matrix", "gate"):
+    names_to_scan = ["spec", "plan", "tasks"]
+    if active_profile in {"full", "audit"}:
+        names_to_scan.append("review")
+    if active_profile == "audit":
+        names_to_scan.extend(["audit_traceability", "audit_matrix", "audit_gate", "audit_decisions"])
+    else:
+        names_to_scan.extend(name for name, path in artifacts.items() if name not in names_to_scan and path.exists())
+    for name in names_to_scan:
         text = texts[name]
         match = PLACEHOLDER_RE.search(text)
         if match:
@@ -312,7 +369,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
 
     constitution_path = discover_constitution(root)
     constitution_text = read(constitution_path) if constitution_path else ""
-    if constitution_path and MUST_RE.search(constitution_text):
+    if active_profile in {"full", "audit"} and constitution_path and MUST_RE.search(constitution_text):
         for phrase in ("provider-specific", "provider id", "secret", "release gate", "evidence"):
             if phrase in constitution_text.lower() and phrase not in (texts["plan"] + texts["tasks"] + texts["matrix"]).lower():
                 add_finding(
@@ -324,7 +381,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
                     "Map constitution MUST rules into plan, tasks, or release gate evidence.",
                 )
                 break
-    elif not constitution_path:
+    elif active_profile in {"full", "audit"} and not constitution_path:
         add_finding(
             findings,
             "constitution",
@@ -334,7 +391,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             "Create a constitution or document why this feature does not need one.",
         )
 
-    if not re.search(r"^#{2,3}\s+Constitution Check", texts["plan"], re.M):
+    if active_profile in {"full", "audit"} and not re.search(r"^#{2,3}\s+Constitution Check", texts["plan"], re.M):
         add_finding(
             findings,
             "constitution",
@@ -389,26 +446,15 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
                     "Reconcile run-state.json with tasks.md checkboxes; checkboxes plus git log are the source of truth.",
                 )
 
-    for expected in ("research.md", "data-model.md", "contracts/", "quickstart.md"):
-        if expected not in texts["plan"]:
+    for expected in ("## Research", "## Data Model", "## Contracts", "## Quickstart"):
+        if active_profile in {"full", "audit"} and expected not in texts["plan"]:
             add_finding(
                 findings,
                 "lifecycle",
                 "MEDIUM",
                 str(artifacts["plan"].relative_to(root)),
-                f"plan.md does not reference `{expected}`.",
-                "Reference the lifecycle artifact and summarize its decisions in the plan.",
-            )
-
-    for expected in ("prd-source.md", "traceability.md"):
-        if expected not in texts["spec"] and expected not in texts["plan"]:
-            add_finding(
-                findings,
-                "prd",
-                "MEDIUM",
-                str(artifacts["spec"].relative_to(root)),
-                f"PRD source artifact `{expected}` is not referenced by spec.md or plan.md.",
-                "Reference PRD source and traceability artifacts so PRD-first input remains auditable.",
+                f"plan.md does not contain `{expected}`.",
+                "Summarize research, data model, contracts, and quickstart decisions in the compact plan.",
             )
 
     if "Evidence before claims" not in texts["tasks"] and "Fresh verification" not in texts["tasks"]:
@@ -461,7 +507,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             "Name exact files for each task.",
         )
 
-    p0_rows = [line for line in texts["matrix"].splitlines() if "| P0 " in line or "|P0" in line]
+    p0_rows = [line for line in texts["matrix"].splitlines() if active_profile in {"full", "audit"} and ("| P0 " in line or "|P0" in line)]
     for idx, row in enumerate(p0_rows, start=1):
         if "true-integration" not in row and "capture" not in row and "artifact" not in row:
             add_finding(
@@ -501,7 +547,11 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
     templates = template_layer_summary(root)
     summary = {
         "feature_dir": str(feature_dir.relative_to(root)),
-        "quality_dir": str(quality_dir.relative_to(root)),
+        "profile": active_profile,
+        "review_file": str(artifacts["review"].relative_to(root)) if artifacts["review"].exists() else None,
+        "review_dir": str(review_dir.relative_to(root)) if review_dir.exists() else None,
+        "audit_dir": str(audit_dir.relative_to(root)) if audit_dir.exists() else None,
+        "legacy_quality_dir": str(legacy_quality_dir.relative_to(root)) if legacy_quality_dir.exists() else None,
         "prd_source_ids": sorted(prd_source_ids),
         "trace_source_ids": sorted(trace_source_ids),
         "constitution": str(constitution_path.relative_to(root)) if constitution_path else None,
@@ -553,14 +603,19 @@ def write_checklist(feature_dir: Path, findings: list[Finding]) -> None:
         "- [ ] Parallel tasks use `[P]` and disjoint owned files",
         "- [ ] Fresh verification commands are listed before completion claims",
     ]
-    (feature_dir / "CHECKLIST.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path = feature_dir / "review.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def render_markdown(findings: list[Finding], summary: dict[str, object]) -> str:
     lines = ["# Vibe Structure and Artifact Analysis", ""]
     if summary:
         lines.append(f"- Feature: `{summary['feature_dir']}`")
-        lines.append(f"- Quality: `{summary['quality_dir']}`")
+        lines.append(f"- Profile: `{summary['profile']}`")
+        lines.append(f"- Review: `{summary.get('review_file') or summary.get('review_dir')}`")
+        if summary.get("legacy_quality_dir"):
+            lines.append(f"- Legacy quality: `{summary['legacy_quality_dir']}`")
         if isinstance(summary.get("prd_source_ids"), list):
             lines.append(f"- PRD source rows: {len(summary['prd_source_ids'])}")
         if isinstance(summary.get("trace_source_ids"), list):
@@ -605,8 +660,9 @@ def main() -> int:
     parser.add_argument("--root", default=".", help="Project root")
     parser.add_argument("--feature", help="Feature directory, branch name, or slug")
     parser.add_argument("--version", default="V0.1", help="Quality version folder")
+    parser.add_argument("--profile", choices=("auto", "lite", "full", "audit"), default="auto", help="Validation strictness")
     parser.add_argument("--json", action="store_true", help="Emit JSON")
-    parser.add_argument("--write-checklist", action="store_true", help="Write specs/<feature>/CHECKLIST.md from analyzer findings")
+    parser.add_argument("--write-checklist", action="store_true", help="Write specs/<feature>/review.md from analyzer findings")
     args = parser.parse_args()
     root = Path(args.root).resolve()
 
@@ -623,7 +679,7 @@ def main() -> int:
         )
 
     feature_dir = resolve_feature(root, args.feature)
-    artifact_findings, summary = analyze_artifacts(root, feature_dir, args.version)
+    artifact_findings, summary = analyze_artifacts(root, feature_dir, args.version, args.profile)
     findings.extend(artifact_findings)
 
     if args.write_checklist and feature_dir is not None:

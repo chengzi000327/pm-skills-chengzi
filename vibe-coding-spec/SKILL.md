@@ -33,8 +33,9 @@ Idea or PRD or Bug
 ## 默认流程
 
 1. **分类请求**（按请求规模选路径，不是所有任务都走完整 lifecycle）
-   - **新功能 / 复杂改动**：走完整 `spec -> clarify -> research/data/contracts -> plan -> tasks -> analyze -> implement -> review -> gate`。
-   - **完整 PRD**：先走 `prd-source -> traceability -> normalize/split -> spec`，再进入 plan。
+   - **默认原则**：使用 skill 时必须做需求/计划/任务/验证审查，但默认不要在用户项目里生成文件；先在对话中给出检查结论、缺口、执行计划和验证证据。
+   - **新功能 / 复杂改动**：默认走内存态轻量审查 `spec review -> plan review -> task review -> implement`；高风险、跨模块、外部契约、发布门禁或用户明确要求严格治理时，再升级为完整 `spec -> clarify -> research/data/contracts -> plan -> tasks -> analyze -> implement -> review -> gate`。
+   - **完整 PRD**：先在内存中做 `source -> traceability -> normalize/split -> spec`；只有用户要求持久化时，才把 PRD 来源和 traceability 合并写入 `spec.md`。
    - **Bug 修复**：走 systematic debugging 轻量路径（复现 -> 根因 -> 单任务 RED/GREEN）；根因揭示架构问题时升级为 feature。见 `references/review-finish-debug-workflow.md`。
    - **小改动（1-2 个文件、行为明确）**：直接用单任务模板（失败测试 -> 最小实现 -> 验证 -> commit），不生成 spec pack；但 constitution 和 evidence 规则仍适用。
    - **架构或规范**：生成或更新 constitution（用 `references/constitution-template.md` 引导，遵循版本治理）。
@@ -43,29 +44,29 @@ Idea or PRD or Bug
    - **Review**：检查目录边界、constitution 合规、测试矩阵、证据、release gate。
 
 2. **锚定 constitution**
-   - 如果项目已有 `.specify/memory/constitution.md`、`AGENTS.md`、`CLAUDE.md`、`docs/specs/`、`quality/`，先读现有规范并保留本地约定。
+   - 如果项目已有 `.specify/memory/constitution.md`、`AGENTS.md`、`CLAUDE.md`、`docs/specs/`、legacy `quality/`，先读现有规范并保留本地约定。
    - 没有 constitution 时，用 `references/constitution-template.md` **引导用户生成**项目自己的 constitution（项目无关模板 + semver 版本治理），不要默认套用特定架构。
    - 平台网关 / 多 adapter 类项目可套用 platform-gateway preset：`references/vibe-engineering-constitution.md`。
-   - plan 阶段必须执行两次 Constitution Check gate（pre-research、post-design）；违规必须进 Complexity Tracking 表书面辩护。
+   - 轻量模式在 plan 中记录相关项目约定即可；完整治理模式必须执行两次 Constitution Check gate（pre-research、post-design），违规必须进 Complexity Tracking 表书面辩护。
 
 3. **生成或更新 feature artifacts**
-   - `prd-source.md`：保留 idea/PRD 原文、source index。
-   - `traceability.md`：`PRD-S### -> FR/SC/User Story/TC/Task/Evidence`。
+   - 默认不生成 artifacts；审查内容先留在对话和最终报告中。
+   - 只有在用户明确要求“生成规格包/落盘/可续跑/可审计/release gate”，或任务复杂到需要跨 session 状态时，才使用脚本生成 artifacts。
+   - 手动轻量包创建 `spec.md`、`plan.md`、`tasks.md`、`run-state.json`。
+   - PRD 输入时不额外创建目录；来源摘要、原文快照和 `PRD-S### -> FR/SC/User Story/TC/Task/Evidence` 映射合并写入 `spec.md`。
    - `run-state.json`：phase、任务进度、最近验证结果——跨 session 续跑锚点。
    - `spec.md`：what/why、users、P1/P2/P3 user stories（每个独立可交付）、requirements、non-goals、acceptance criteria、**Assumptions**（描述不足时采用的合理默认）、**Edge Cases**（"What happens when..."句式）；未解决歧义打 `[NEEDS CLARIFICATION: ...]` 内联标记。
-   - `clarify.md`：九类覆盖扫描结果、open/blocking questions、resolved clarifications、coverage summary。
-   - `research.md`：技术调研问题、决策、替代方案。
-   - `data-model.md`：entities、fields、relationships、state transitions。
-   - `contracts/`：外部 API、事件、CLI、文件格式、adapter contract。
-   - `quickstart.md`：运行和验证步骤。
-   - `plan.md`：Constitution Check 两个 gate、Complexity Tracking、架构、File Structure、目录影响、测试策略、证据策略。
-   - `tasks.md`：phase、dependency、parallel ownership、`[P]` 标记、RED/GREEN、2-5 分钟 step、evidence、commit point。
-   - `CHECKLIST.md`（结构层）+ `checklists/<domain>.md`（需求质量层，CHK 问题句条目）、`TEST_MATRIX.md`、`TEST_REPORT.md`、`RELEASE_GATE.md`：质量检查、测试矩阵、报告和发布门禁。
+   - `plan.md`：技术上下文、范围决策、实现路径、验证命令、风险。
+   - `tasks.md`：phase、dependency、parallel ownership、`[P]` 标记、RED/GREEN、2-5 分钟 step、commit point。
+   - 完整治理包（脚本加 `--full`）仍使用 compact SDD 文件：
+   - `review.md`：clarify、checklist、test matrix、test report、release gate 合并在一个审查文件里。
+   - `evidence/`：保存 release gate 引用的证据材料。
+   - 审计包（脚本加 `--audit`）在 compact SDD 基础上增加 `audit/traceability.md`、`audit/test-matrix.md`、`audit/release-gate.md`、`audit/decision-log.md`，只用于合规、审计和正式发布。
    - plan 定稿后把长期技术决策增量同步到 agent context 文件（CLAUDE.md/AGENTS.md 的 auto-managed 区块）。
 
 4. **使用 superpower 执行纪律**
    - **Brainstorming HARD-GATE**：设计未呈现并获用户批准前不写任何代码——对每个项目适用，无论多简单；澄清一次一问，方案给 2-3 个带 trade-offs 的选项。
-   - **Pre-flight 门禁**（进入 implement 前）：分支保护（未经同意不在 main/master 上实现）、checklist 完成度扫描（有未完成项暂停要用户确认）、blocking clarification 清零、constitution gate 有记录、baseline 验证、before_implement hooks。
+   - **Pre-flight 门禁**（进入 implement 前）：分支保护（未经同意不在 main/master 上实现）、checklist 完成度扫描（有未完成项暂停要用户确认）、blocking clarification 清零、constitution gate 有记录、baseline 验证。
    - 任务必须可逐项执行；写 plan 时假设执行者对代码库零上下文且品味存疑。
    - 一个 step = 一个动作 = 2-5 分钟；代码变更任务必须包含 expected RED failure 和 GREEN pass。
    - 每个任务写清 exact files、commands、expected output、evidence refs。
@@ -98,18 +99,22 @@ Idea or PRD or Bug
 
 ## Scripts
 
-需要生成文件或做一致性分析时使用脚本：
+只有用户明确要求落盘规格包、跨 session 续跑、审计链路、release gate，或已有 artifacts 需要一致性分析时，才使用脚本：
 
 ```bash
 python3 scripts/scaffold_vibe_feature.py --root . --name "feature name" --version V0.1
 python3 scripts/scaffold_vibe_feature.py --root . --prd docs/product/prd.md --version V0.1
+python3 scripts/scaffold_vibe_feature.py --root . --name "feature name" --version V0.1 --full
+python3 scripts/scaffold_vibe_feature.py --root . --name "feature name" --version V0.1 --audit
 python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1
+python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1 --profile full
+python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1 --profile audit
 python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --version V0.1 --write-checklist
 ```
 
-`scaffold_vibe_feature.py` 创建 `specs/###-feature-name/`（含 `run-state.json`）、`quality/<version>/`、`.specify/templates/overrides/`、`.specify/presets/templates/`、`.specify/extensions/templates/`。传入 `--prd` 时会额外生成 `prd-source.md` 和 `traceability.md`。脚本不覆盖已有文件。
+`scaffold_vibe_feature.py` 默认创建轻量 `specs/###-feature-name/`：`spec.md`、`plan.md`、`tasks.md`、`run-state.json`。传入 `--prd` 时把 PRD source 和 traceability 合并写入 `spec.md`。传入 `--full` 时额外创建 `review.md` 和 `evidence/`。传入 `--audit` 时额外创建 `audit/` 四文件审计包。脚本不覆盖已有文件。
 
-`check_vibe_structure.py` 检查推荐目录，并分析 `prd-source.md`、`traceability.md`、`spec.md`、`clarify.md`、`research.md`、`data-model.md`、`contracts/`、`quickstart.md`、`CHECKLIST.md`、`plan.md`（含 Constitution Check gate 和 Complexity Tracking）、`tasks.md`、`run-state.json` 一致性、`TEST_MATRIX.md`、`RELEASE_GATE.md` 的覆盖关系。需要机器消费时加 `--json`。
+`check_vibe_structure.py` 检查推荐目录，并分析 artifacts。默认 `--profile auto`：存在 `audit/` 时按 audit 检查，存在 `review.md` 或 legacy 完整治理文件时按 full 检查，否则按 lite 检查。lite 只强制 `spec.md`、`plan.md`、`tasks.md`、`run-state.json`；full 会额外检查 `review.md`、Constitution Check gate 和 Complexity Tracking；audit 会额外检查 `audit/` 四文件。需要机器消费时加 `--json`。
 
 ## Output Rules
 
@@ -117,18 +122,17 @@ python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --ve
 - spec 阶段保持 implementation-neutral；plan 阶段才写技术实现。
 - spec 中未解决的歧义必须打 `[NEEDS CLARIFICATION: ...]` 内联标记；clarify 消费这些标记，回答后移除标记并回写正文。
 - 描述不足时采用的合理默认必须写入 spec 的 Assumptions，不得静默假设。
-- PRD-first 输入必须保留 `prd-source.md`，并用 `traceability.md` 映射每个 `PRD-S###`。
+- PRD-first 输入需要落盘时，必须在 `spec.md` 中保留 source snapshot 和 traceability 映射。
 - 完整 PRD 包含多个独立交付价值时，先拆 feature pack，再分别 plan/tasks。
 - 默认使用 `specs/###-feature-name/`，除非项目已有更强约定。
-- 模板优先级：`.specify/templates/overrides/` > `.specify/presets/templates/` > `.specify/extensions/templates/` > skill fallback。
 - plan 必须记录两次 Constitution Check 结果；存在违规而无 Complexity Tracking 辩护时，analyze 按 CRITICAL 处理。
-- P0 行为必须有 `TEST_MATRIX.md` 行、task、evidence ref。
+- P0 行为必须有 `review.md` test matrix 行、task、evidence ref。
 - requirement IDs 必须映射到 task IDs、test case IDs、evidence refs。
 - evidence type 必须区分 `artifact`、`capture`、`true-integration`。
 - 完成、通过、修复、可发布等结论必须引用 fresh verification；evidence before claims。
 - 阶段推进和任务完成必须同步 `run-state.json`；新 session 接手时先走 resume 协议再动手。
-- 临时实验不得放进 `src/` 或 `platform/`；使用 `tmp/`、`quality/<version>/evidence/` 或 `docs/archive/`。
-- 请求 release readiness 时，必须显式评估 `RELEASE_GATE.md`。
+- 临时实验不得放进 `src/` 或 `platform/`；使用 `tmp/`、`specs/<feature>/evidence/` 或 `docs/archive/`。
+- 请求 release readiness 时，必须显式评估 `review.md` 的 release gate。
 - 收到 review 意见时遵循 receiving-review 纪律：存疑先验证，不盲改，不性能化附和。
 - 收尾时必须呈现 merge / PR / keep / discard 四个结构化选项，由用户决定。
 - 设计未获用户批准前不得进入实现（brainstorming HARD-GATE）；"太简单不需要设计"是反模式。

@@ -16,7 +16,8 @@ platform/providers/  provider/back-end adapters
 scripts/             operational scripts
 scripts/certification/ release certification, reports, release gate
 test/                fast and focused tests
-quality/             versioned quality evidence
+specs/<feature>/review.md  feature-scoped review, test matrix, release gate
+specs/<feature>/evidence/  feature-scoped quality evidence
 docs/                architecture, design, runtime, specs, decisions
 ```
 
@@ -129,6 +130,7 @@ platform/clients/
 platform/providers/
 scripts/certification/
 test/
-quality/V0.1/
+specs/<feature>/review.md
+specs/<feature>/evidence/
 docs/architecture/
 ```

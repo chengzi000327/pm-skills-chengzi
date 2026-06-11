@@ -22,7 +22,7 @@ Plan: {PLAN_PATH}（只读你任务相关的部分，完整任务文本已粘贴
 
 ## 禁止修改
 
-- contracts/、data-model.md、spec.md
+- plan.md、spec.md
 - 其他 agent 拥有的文件：{OTHER_OWNED_FILES}
 
 ## 必要上下文

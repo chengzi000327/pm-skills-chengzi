@@ -84,7 +84,7 @@ Rules:
       "status": "PASS",
       "positiveAssertions": 3,
       "evidenceType": "capture",
-      "evidenceRefs": ["quality/V1.0/evidence/tc-001.json"],
+      "evidenceRefs": ["specs/001-feature-name/evidence/tc-001.json"],
       "verifiedAt": "2026-06-11T10:00:00Z",
       "verificationCommand": "pytest tests/path/test_file.py -v"
     }

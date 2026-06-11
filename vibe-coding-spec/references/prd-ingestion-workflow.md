@@ -6,19 +6,19 @@ Idea-first：
 
 - 输入是短想法、方向、用户问题或功能描述。
 - 先通过 brainstorming 和 clarify 扩展为 `spec.md`。
-- `prd-source.md` 记录为 idea input。
+- 需要落盘时，在 `spec.md` 的 Source 区记录为 idea input。
 
 PRD-first：
 
 - 输入是完整 PRD、PRD v0/v1、产品定义稿、Samples/Eval、两图一表、原型探索总结。
 - 先做 ingestion，不要直接进入 plan。
-- 保留原文到 `prd-source.md`，再生成 `traceability.md`。
+- 需要落盘时，在 `spec.md` 中保留原文快照和 traceability。
 
 协作链快速通道——如果 PRD 来自本合集的 `prd-writer`（特征：自带 FR-###/SC-### 编号、S-## sample 编号、假设区、`[NEEDS CLARIFICATION]` 标记、"当...时会发生什么"边界句式）：
 
 - **复用其 FR/SC 编号**，不要重新编号；traceability 直接建 `PRD-S### -> 既有 FR-###` 映射。
 - 其 `[NEEDS CLARIFICATION]` 标记直接进入 clarify 候选问题，其假设区直接进入 spec 的 Assumptions。
-- S-## samples 直接转 quickstart 场景和 TEST_MATRIX 行；F-##（反哺清单）条目检查是否已被吸收。
+- S-## samples 直接转 `plan.md` Quickstart 场景和 `review.md` Test Matrix 行；F-##（反哺清单）条目检查是否已被吸收。
 - 模糊词检查通常可以快速通过（上游已做同词表转换），抽查即可。
 
 ## PRD-first 标准流程
@@ -56,10 +56,10 @@ PRD-first：
    - 每轮最多 5 个问题。
 
 6. Convert Samples/Eval
-   - Samples 进入 `quickstart.md` 和测试场景。
-   - Rubric 进入 `TEST_MATRIX.md` acceptance。
+   - Samples 进入 `plan.md` Quickstart 和测试场景。
+   - Rubric 进入 `review.md` Test Matrix acceptance。
    - Metric 进入 `SC-###` 和 release gate。
-   - Judge/Evaluator/Protocol 进入 `research.md` 或 `contracts/`。
+   - Judge/Evaluator/Protocol 进入 `plan.md` Research 或 Contracts。
 
 ## PRD 拆分规则
 
@@ -86,7 +86,7 @@ PRD-first：
 
 - 转成 measurable `SC-###`。
 - 转成 Given/When/Then acceptance。
-- 如果无法转，在 spec 对应条目打 `[NEEDS CLARIFICATION: ...]` 内联标记，并写入 `clarify.md` 的 blocking 或 non-blocking ambiguity。
+- 如果无法转，在 spec 对应条目打 `[NEEDS CLARIFICATION: ...]` 内联标记，并写入 `review.md` Clarifications 的 blocking 或 non-blocking ambiguity。
 - 采用合理默认时写入 spec 的 Assumptions，不得静默假设。
 
 ingestion 完成后，`run-state.json` 的 `phase` 从 `ingest` 推进到 `specify`（scaffold 脚本传 `--prd` 时初始 phase 即为 `ingest`）。

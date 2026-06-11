@@ -89,7 +89,10 @@ def main() -> int:
     parser.add_argument("--prd", help="Path to an existing PRD markdown/text file")
     parser.add_argument("--version", default="V0.1", help="Quality version folder")
     parser.add_argument("--number", type=int, help="Feature number override")
+    parser.add_argument("--full", action="store_true", help="Create the full governance pack instead of the lightweight default")
+    parser.add_argument("--audit", action="store_true", help="Create compact SDD plus a release audit pack")
     args = parser.parse_args()
+    full = args.full or args.audit
 
     root = Path(args.root).resolve()
     prd_path = Path(args.prd).resolve() if args.prd else None
@@ -107,7 +110,8 @@ def main() -> int:
     number = args.number if args.number is not None else next_feature_number(root)
     branch = f"{number:03d}-{slug}"
     feature_dir = root / "specs" / branch
-    quality_dir = root / "quality" / args.version
+    evidence_dir = feature_dir / "evidence"
+    audit_dir = feature_dir / "audit"
     context = {
         "FEATURE_NAME": feature_name,
         "FEATURE_SLUG": slug,
@@ -127,69 +131,47 @@ def main() -> int:
         for section_id, title in prd_sections
     ) or "| PRD-S001 | Idea input | TODO | TODO |"
 
+    source_preview = prd_text[:MAX_SOURCE_PREVIEW_CHARS]
+    truncated = "\n\n> Source truncated in this artifact. Keep the original PRD file as source of truth." if len(prd_text) > MAX_SOURCE_PREVIEW_CHARS else ""
+    source_section = ""
     if prd_path:
-        source_preview = prd_text[:MAX_SOURCE_PREVIEW_CHARS]
-        truncated = "\n\n> Source truncated in this artifact. Keep the original PRD file as source of truth." if len(prd_text) > MAX_SOURCE_PREVIEW_CHARS else ""
-        write_if_missing(feature_dir / "prd-source.md", render_template(root, "prd-source.md", context, f"""# {feature_name} PRD Source
+        source_section = f"""
+## Source
 
-**Feature Branch**: `{branch}`
 **Original PRD**: `{prd_source_rel}`
 
-## Source Index
+### Source Index
 
 | Source ID | Section | Normalized Into | Notes |
 |---|---|---|---|
 {prd_index_rows}
 
-## Original PRD Snapshot
-
-```markdown
-{source_preview}
-```
-{truncated}
-"""))
-    else:
-        write_if_missing(feature_dir / "prd-source.md", render_template(root, "prd-source.md", context, f"""# {feature_name} PRD Source
-
-**Feature Branch**: `{branch}`
-**Original PRD**: Idea input only
-
-## Source Index
-
-| Source ID | Section | Normalized Into | Notes |
-|---|---|---|---|
-| PRD-S001 | Idea input | spec.md | Expand through clarify before planning |
-"""))
-
-    write_if_missing(feature_dir / "traceability.md", render_template(root, "traceability.md", context, f"""# {feature_name} Traceability
-
-**Feature Branch**: `{branch}`
-**Source**: `specs/{branch}/prd-source.md`
-
-## PRD to Delivery Map
+### Traceability
 
 | Source ID | PRD Section | Requirement | User Story | Test Case | Task | Status |
 |---|---|---|---|---|---|---|
 {prd_section_rows}
 
-## Coverage Rules
+### Coverage Rules
 
 - Every PRD-S row must map to one or more FR, SC, non-goal, assumption, or explicit out-of-scope note.
 - P0 PRD sections must map to at least one TC and evidence ref.
 - Any unmapped PRD section must be marked `out-of-scope`, `duplicate`, or `deferred` with rationale.
-"""))
+
+### Original PRD Snapshot
+
+```markdown
+{source_preview}
+```
+{truncated}
+"""
 
     write_if_missing(feature_dir / "spec.md", render_template(root, "spec.md", context, f"""# Feature Specification: {feature_name}
 
 **Feature Branch**: `{branch}`
 **Status**: Draft
 **Input**: {"PRD source: `" + prd_source_rel + "`" if prd_path else "User description: \"" + feature_name + "\""}
-
-## Source Normalization
-
-| Source | Traceability |
-|---|---|
-| `specs/{branch}/prd-source.md` | `specs/{branch}/traceability.md` |
+{source_section}
 
 ## Scope
 
@@ -236,162 +218,14 @@ TODO: Describe the independently testable user journey.
 - TODO (record reasonable defaults adopted where the source description lacked specificity)
 """))
 
-    write_if_missing(feature_dir / "clarify.md", render_template(root, "clarify.md", context, f"""# {feature_name} Clarifications
-
-**Feature Branch**: `{branch}`
-
-## Open Questions
-
-Ask at most five questions per clarify pass. Block planning only when the answer changes data model, security/privacy, irreversible UX behavior, external contracts, release gate criteria, or P0 acceptance.
-
-- [ ] Q1: TODO
-
-## Blocking Questions
-
-- TODO
-
-## PRD-Derived Ambiguities
-
-| Source ID | Ambiguity | Blocking? | Proposed Handling |
-|---|---|---|---|
-| PRD-S001 | TODO | yes | Ask before plan |
-
-## Resolved Clarifications
-
-| Date | Question | Answer | Impacted Artifact |
-|---|---|---|---|
-"""))
-
-    write_if_missing(feature_dir / "research.md", render_template(root, "research.md", context, f"""# {feature_name} Research
-
-**Feature Branch**: `{branch}`
-
-## Research Questions
-
-| ID | Question | Owner | Status | Decision Impact |
-|---|---|---|---|---|
-| RQ-001 | TODO | explorer | open | plan.md |
-
-## Decisions
-
-| Topic | Decision | Rationale | Alternatives Rejected |
-|---|---|---|---|
-| TODO | TODO | TODO | TODO |
-
-## External References
-
-- TODO
-"""))
-
-    write_if_missing(feature_dir / "data-model.md", render_template(root, "data-model.md", context, f"""# {feature_name} Data Model
-
-**Feature Branch**: `{branch}`
-
-## Entities
-
-### TODO
-
-- Purpose: TODO
-- Fields:
-  - `id`: TODO
-- Relationships: TODO
-- Validation: TODO
-
-## State Transitions
-
-| Entity | From | To | Trigger | Guard |
-|---|---|---|---|---|
-| TODO | TODO | TODO | TODO | TODO |
-"""))
-
-    write_if_missing(feature_dir / "contracts" / "README.md", render_template(root, "contracts/README.md", context, f"""# {feature_name} Contracts
-
-**Feature Branch**: `{branch}`
-
-Define external API, event, CLI, file, or adapter contracts before implementation.
-
-## Contract Inventory
-
-| Contract | Requirement | Producer | Consumer | Evidence |
-|---|---|---|---|---|
-| TODO | FR-001 | TODO | TODO | TC-001 |
-
-## Compatibility Notes
-
-- TODO
-"""))
-
-    write_if_missing(feature_dir / "quickstart.md", render_template(root, "quickstart.md", context, f"""# {feature_name} Quickstart
-
-**Feature Branch**: `{branch}`
-
-## Prerequisites
-
-- TODO
-
-## Run
-
-```bash
-TODO
-```
-
-## Validate
-
-| Step | Command | Expected |
-|---|---|---|
-| 1 | `TODO` | TODO |
-"""))
-
-    write_if_missing(feature_dir / "CHECKLIST.md", render_template(root, "CHECKLIST.md", context, f"""# {feature_name} Requirement Checklist
-
-**Feature Branch**: `{branch}`
-
-## Spec Quality
-
-- [ ] PRD source is preserved in `prd-source.md`
-- [ ] PRD sections are mapped in `traceability.md`
-- [ ] No unresolved `TODO`, `TBD`, or `NEEDS CLARIFICATION`
-- [ ] User stories are independently testable
-- [ ] Acceptance scenarios use Given/When/Then
-- [ ] Success criteria are measurable
-
-- [ ] Remaining `[NEEDS CLARIFICATION]` markers are zero before plan
-- [ ] Assumptions and edge cases are explicitly recorded
-
-## Plan Quality
-
-- [ ] Constitution Check passed at both gates (pre-research, post-design)
-- [ ] All constitution violations are justified in Complexity Tracking
-
-- [ ] Architecture impact covers product control, platform core, client adapters, provider adapters, and governance
-- [ ] Directory impact names exact paths
-- [ ] Research decisions are captured in `research.md`
-- [ ] Data model entities are captured in `data-model.md`
-- [ ] Contracts are captured in `contracts/`
-
-## Task Quality
-
-- [ ] Tasks are grouped by setup, foundation, user story, and polish phases
-- [ ] Parallel tasks are marked `[P]`
-- [ ] Each code-changing task includes RED/GREEN verification
-- [ ] Each P0 requirement maps to a test case and evidence ref
-"""))
-
-    write_if_missing(feature_dir / "plan.md", render_template(root, "plan.md", context, f"""# Implementation Plan: {feature_name}
+    if full:
+        plan_body = f"""# Implementation Plan: {feature_name}
 
 **Branch**: `{branch}` | **Spec**: `specs/{branch}/spec.md`
 
 ## Summary
 
 TODO
-
-## PRD Traceability
-
-Source: `specs/{branch}/prd-source.md`
-Map: `specs/{branch}/traceability.md`
-
-- P0 source sections: TODO
-- Deferred source sections: TODO
 
 ## Technical Context
 
@@ -403,27 +237,19 @@ Map: `specs/{branch}/traceability.md`
 
 ## Research
 
-Source: `specs/{branch}/research.md`
-
 - Decisions: TODO
 - Open risks: TODO
 
 ## Data Model
-
-Source: `specs/{branch}/data-model.md`
 
 - Entities: TODO
 - State transitions: TODO
 
 ## Contracts
 
-Source: `specs/{branch}/contracts/`
-
 - External interfaces: TODO
 
 ## Quickstart
-
-Source: `specs/{branch}/quickstart.md`
 
 - Validation path: TODO
 
@@ -467,7 +293,45 @@ Source: `specs/{branch}/quickstart.md`
 ## Risks
 
 - TODO
-"""))
+"""
+    else:
+        plan_body = f"""# Implementation Plan: {feature_name}
+
+**Branch**: `{branch}` | **Spec**: `specs/{branch}/spec.md`
+
+## Summary
+
+TODO
+
+## Technical Context
+
+- Language/Version: TODO
+- Primary Dependencies: TODO
+- Testing: TODO
+
+## Scope Decisions
+
+- In scope: TODO
+- Out of scope: TODO
+- Assumptions: TODO
+
+## Implementation Approach
+
+- Files affected: TODO
+- Data or contract impact: TODO
+- Rollback plan: TODO
+
+## Verification
+
+- Baseline command: TODO
+- Focused command: TODO
+- Final command: TODO
+
+## Risks
+
+- TODO
+"""
+    write_if_missing(feature_dir / "plan.md", render_template(root, "plan.md", context, plan_body))
 
     write_if_missing(feature_dir / "tasks.md", render_template(root, "tasks.md", context, f"""# {feature_name} Implementation Plan
 
@@ -539,36 +403,70 @@ TODO: Include exact implementation change or precise edit instructions.
 Run: `pytest test/path/to/test_file.py::test_specific_behavior -v`
 Expected: PASS
 
-- [ ] **Step 5: Update quality evidence**
-
-Evidence: `quality/{args.version}/evidence/TODO`
-
-- [ ] **Step 6: Run broader verification**
+- [ ] **Step 5: Run broader verification**
 
 Run: `pytest test/path/to/test_file.py -v`
 Expected: PASS with 0 failed.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add TODO
 git commit -m "feat: TODO"
 ```
 
-## Phase N: Polish and Release Evidence
+## Phase N: Final Verification
 
 - [ ] T999 Run `python3 vibe-coding-spec/scripts/check_vibe_structure.py --root . --feature {branch} --version {args.version}`
-- [ ] T998 Update `quality/{args.version}/RELEASE_GATE.md` with fresh verification evidence
 """))
 
-    write_if_missing(quality_dir / "TEST_MATRIX.md", render_template(root, "TEST_MATRIX.md", context, f"""# {args.version} Test Matrix
+    if full:
+        write_if_missing(feature_dir / "review.md", render_template(root, "review.md", context, f"""# Review and Release Gate: {feature_name}
+
+**Feature Branch**: `{branch}`
+
+## Clarifications
+
+Ask at most five questions per clarify pass. Block planning only when the answer changes data model, security/privacy, irreversible UX behavior, external contracts, release gate criteria, or P0 acceptance.
+
+### Open Questions
+
+- [ ] Q1: TODO
+
+### Resolved Clarifications
+
+| Date | Question | Answer | Impacted Artifact |
+|---|---|---|---|
+
+## Checklist
+
+### Spec Quality
+
+- [ ] No unresolved `TODO`, `TBD`, or `NEEDS CLARIFICATION`
+- [ ] User stories are independently testable
+- [ ] Acceptance scenarios use Given/When/Then
+- [ ] Success criteria are measurable
+- [ ] Assumptions and edge cases are explicitly recorded
+
+### Plan Quality
+
+- [ ] Constitution Check passed at both gates when required
+- [ ] All constitution violations are justified in Complexity Tracking
+- [ ] Research, data model, contracts, and quickstart decisions are captured in `plan.md`
+- [ ] Directory impact names exact paths
+
+### Task Quality
+
+- [ ] Tasks are grouped by setup, foundation, user story, and polish phases
+- [ ] Parallel tasks are marked `[P]`
+- [ ] Each code-changing task includes RED/GREEN verification
+- [ ] Each P0 requirement maps to a test case and evidence ref
+
+## Test Matrix
 
 | Case | Requirement | Capability | Stage | Evidence Type | Priority | Acceptance | Evidence Ref |
 |---|---|---|---|---|---|---|---|
-| TC-001 | FR-001 | TODO | contract | capture | P0 | TODO | quality/{args.version}/evidence/tc-001.json |
-"""))
-
-    write_if_missing(quality_dir / "TEST_REPORT.md", render_template(root, "TEST_REPORT.md", context, f"""# {args.version} Test Report
+| TC-001 | FR-001 | TODO | contract | capture | P0 | TODO | specs/{branch}/evidence/tc-001.json |
 
 ## Summary
 
@@ -581,9 +479,8 @@ git commit -m "feat: TODO"
 
 | Case | Status | Evidence |
 |---|---|---|
-"""))
 
-    write_if_missing(quality_dir / "RELEASE_GATE.md", render_template(root, "RELEASE_GATE.md", context, f"""# {args.version} Release Gate
+## Release Gate
 
 - [ ] Worktree clean
 - [ ] Required platform reports present
@@ -593,6 +490,66 @@ git commit -m "feat: TODO"
 - [ ] Fresh verification commands were run before completion claims
 - [ ] Secret scan passed
 - [ ] Untested scope documented
+"""))
+
+    if args.audit:
+        write_if_missing(audit_dir / "traceability.md", render_template(root, "audit/traceability.md", context, f"""# Audit Traceability: {feature_name}
+
+**Feature Branch**: `{branch}`
+
+## Requirement to Evidence Map
+
+| Source | Requirement | Success Criteria | Task | Test Case | Evidence | Status |
+|---|---|---|---|---|---|---|
+| PRD-S001 | FR-001 | SC-001 | T004 | TC-001 | specs/{branch}/evidence/tc-001.json | open |
+
+## Coverage Rules
+
+- Every P0/P1 requirement must map to a task, test case, and evidence ref.
+- Any unmapped requirement must be explicitly marked `deferred`, `duplicate`, or `out-of-scope` with rationale.
+"""))
+
+        write_if_missing(audit_dir / "test-matrix.md", render_template(root, "audit/test-matrix.md", context, f"""# Audit Test Matrix: {feature_name}
+
+**Feature Branch**: `{branch}`
+
+| Case | Requirement | Stage | Evidence Type | Priority | Acceptance | Evidence Ref | Status |
+|---|---|---|---|---|---|---|---|
+| TC-001 | FR-001 | contract | capture | P0 | TODO | specs/{branch}/evidence/tc-001.json | open |
+"""))
+
+        write_if_missing(audit_dir / "release-gate.md", render_template(root, "audit/release-gate.md", context, f"""# Audit Release Gate: {feature_name}
+
+**Feature Branch**: `{branch}`
+
+## Decision
+
+- Status: BLOCKED
+- Decider:
+- Date:
+
+## Gate Checks
+
+- [ ] P0 cases pass with readable evidence
+- [ ] PASS cases include positive assertions
+- [ ] Security/privacy risks reviewed
+- [ ] Rollback or mitigation path documented
+- [ ] Untested scope documented
+- [ ] Waivers have owner, expiry, and rationale
+"""))
+
+        write_if_missing(audit_dir / "decision-log.md", render_template(root, "audit/decision-log.md", context, f"""# Audit Decision Log: {feature_name}
+
+**Feature Branch**: `{branch}`
+
+| Date | Decision | Context | Alternatives Rejected | Owner | Evidence |
+|---|---|---|---|---|---|
+| TODO | TODO | TODO | TODO | TODO | TODO |
+
+## Waivers
+
+| Waiver | Reason | Owner | Expiry | Compensating Control |
+|---|---|---|---|---|
 """))
 
     run_state_path = feature_dir / "run-state.json"
@@ -616,34 +573,15 @@ git commit -m "feat: TODO"
         run_state_path.parent.mkdir(parents=True, exist_ok=True)
         run_state_path.write_text(json.dumps(run_state, indent=2) + "\n", encoding="utf-8")
 
-    write_if_missing(root / ".specify" / "extensions.yml", render_template(root, "extensions.yml", context, """# Optional extension hooks.
-# Hooks are advisory unless optional is false.
-hooks:
-  before_analyze: []
-  after_analyze: []
-  before_implement: []
-  after_implement: []
-"""))
-
-    write_if_missing(feature_dir / "checklists" / "README.md", render_template(root, "checklists/README.md", context, f"""# {feature_name} Requirement Quality Checklists
-
-Domain checklists generated per `checklist-authoring-workflow.md`.
-Items are questions about requirement quality (CHK-numbered, dimension-tagged, traceable),
-never implementation tests.
-
-| File | Focus | Depth | Items |
-|---|---|---|---|
-| (none yet) | | | |
-"""))
-
-    (quality_dir / "evidence").mkdir(parents=True, exist_ok=True)
-    (root / ".specify" / "templates" / "overrides").mkdir(parents=True, exist_ok=True)
-    (root / ".specify" / "presets" / "templates").mkdir(parents=True, exist_ok=True)
-    (root / ".specify" / "extensions" / "templates").mkdir(parents=True, exist_ok=True)
-    print(f"Created feature spec pack: {feature_dir}")
+    if full:
+        evidence_dir.mkdir(parents=True, exist_ok=True)
+    print(f"Created {'audit' if args.audit else 'full' if args.full else 'lightweight'} feature spec pack: {feature_dir}")
     print(f"Feature branch name: {branch}")
-    print(f"Created quality pack: {quality_dir}")
-    print("Template priority: .specify/templates/overrides/ > .specify/presets/templates/ > .specify/extensions/templates/")
+    if full:
+        print(f"Created review file: {feature_dir / 'review.md'}")
+        print(f"Created evidence directory: {evidence_dir}")
+    if args.audit:
+        print(f"Created audit pack: {audit_dir}")
     return 0
 
 

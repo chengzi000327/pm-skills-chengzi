@@ -170,12 +170,12 @@ Expected: PASS with 0 failed.
 
 - [ ] **Step 6: Update quality evidence**
 
-Write evidence to `quality/<version>/evidence/tc-001.json` and ensure it proves TC-001 with positive assertions.
+Write evidence to `specs/<feature>/evidence/tc-001.json` and ensure it proves TC-001 with positive assertions.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add path/to/file path/to/test quality/<version>/evidence/tc-001.json
+git add path/to/file path/to/test specs/<feature>/evidence/tc-001.json
 git commit -m "feat: implement <specific behavior>"
 ```
 
@@ -197,5 +197,5 @@ git commit -m "feat: implement <specific behavior>"
 - A passing test that was not observed failing first does not count as a regression test.
 - Keep unrelated refactors out of task execution.
 - Update checkbox status as work completes; mirror progress into `run-state.json`（见 `execution-state-and-resume.md`）。
-- Store evidence under `quality/<version>/evidence/` when the task affects release confidence.
+- Store evidence under `specs/<feature>/evidence/` when the task affects release confidence.
 - Constitution Check 两个 gate 都未记录结果的 plan 不允许进入 tasks。

@@ -65,7 +65,7 @@ reviewer（无论人类还是 agent）也会出错。收到 review 意见后：
 1. 运行 analyzer（`check_vibe_structure.py`）。
 2. 运行完整测试、lint、typecheck、build 中适用的命令。
 3. 检查 `git status --short` 和 `git diff`，确认没有未提交或不属于本 feature 的改动。
-4. 更新 `TEST_REPORT.md`、`RELEASE_GATE.md`、evidence refs、`run-state.json`（phase 置为 `review` 或 `gate`）。
+4. 更新 `review.md` 的 Test Report、Release Gate、evidence refs，以及 `run-state.json`（phase 置为 `review` 或 `gate`）。
 
 ### 2. 报告
 
@@ -126,5 +126,5 @@ git branch -d <branch>   # 仅 A/D；B 留给 PR 合并后
 
 1. 按上面 1-3 步定位根因。
 2. 若修复只碰 1-2 个文件：直接用单任务模板（RED：先写复现 bug 的失败测试 → GREEN → 验证 → commit），不需要 spec/plan。
-3. 若根因揭示需求或架构问题（修复会改变行为契约、跨多模块）：升级为 feature，走 `specify -> plan` 流程，bug 报告作为 `prd-source.md`。
-4. 修复完成后检查既有 `TEST_MATRIX.md` 是否要补一行回归 case。
+3. 若根因揭示需求或架构问题（修复会改变行为契约、跨多模块）：升级为 feature，走 `specify -> plan` 流程，bug 报告写入 `spec.md` Source 区。
+4. 修复完成后检查既有 `review.md` Test Matrix 是否要补一行回归 case。

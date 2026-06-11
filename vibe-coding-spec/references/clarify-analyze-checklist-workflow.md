@@ -6,7 +6,7 @@
 
 ### Step 1: 九类覆盖扫描
 
-逐类扫描 `spec.md`（以及 `prd-source.md`、`traceability.md`），把每一类标记为 `Clear` / `Partial` / `Missing`：
+逐类扫描 `spec.md`（以及其中落盘的 PRD source 和 traceability），把每一类标记为 `Clear` / `Partial` / `Missing`：
 
 | # | 分类 | 检查内容 |
 |---|---|---|
@@ -36,7 +36,7 @@
 - 外部 API、事件、文件格式、adapter contract 不清楚。
 - P0 acceptance、evidence type、release gate 不清楚。
 
-非阻塞问题写入 `clarify.md` 的 Open Questions，可以进入 plan，但必须在风险里标注。
+非阻塞问题写入 `review.md` 的 Clarifications / Open Questions，可以进入 plan，但必须在风险里标注。
 
 ### Step 3: 逐题多选呈现
 
@@ -64,18 +64,18 @@
 
 每得到一个答案，**立即**做完以下动作再问下一题：
 
-1. 在 `clarify.md` 的 `## Resolved Clarifications` 下追加 `### Session <YYYY-MM-DD>` 记录：`Q: ... → A: ...`。
+1. 在 `review.md` 的 `## Clarifications` 下追加 `### Session <YYYY-MM-DD>` 记录：`Q: ... → A: ...`。
 2. 把答案立即应用到受影响 artifact，替换矛盾的旧表述而不是并存：
    - 需求变更回填 `spec.md`（并移除对应的 `[NEEDS CLARIFICATION]` 标记）
    - 默认假设回填 `spec.md` 的 Assumptions
    - 技术决策回填 `plan.md`
    - 任务顺序回填 `tasks.md`
-   - 验证要求回填 `TEST_MATRIX.md` 或 `RELEASE_GATE.md`
+   - 验证要求回填 `review.md` 的 Test Matrix 或 Release Gate
 3. 保存文件后再继续，防止上下文丢失。
 
 ### Step 5: Coverage Summary
 
-clarify 结束时在 `clarify.md` 末尾输出覆盖总结表：
+clarify 结束时在 `review.md` 输出覆盖总结表：
 
 ```markdown
 ## Coverage Summary <YYYY-MM-DD>
@@ -88,7 +88,7 @@ clarify 结束时在 `clarify.md` 末尾输出覆盖总结表：
 | ... | ... |
 
 - Questions asked: 4
-- Sections modified: spec.md (FR-002, Assumptions), TEST_MATRIX.md (TC-003)
+- Sections modified: spec.md (FR-002, Assumptions), review.md (TC-003)
 - Remaining [NEEDS CLARIFICATION] markers: 0
 - Next: proceed to plan / re-run clarify
 ```
@@ -133,62 +133,15 @@ analyze 还必须人工检查脚本覆盖不到的语义问题：
 
 Checklist 是需求质量的单元测试，不是项目待办，更不是实现测试计划。分两层：
 
-- **结构层** `CHECKLIST.md`（脚本生成）必须覆盖：
+- **结构层** `review.md`（脚本生成）必须覆盖：
   - 规格是否没有占位符和 `[NEEDS CLARIFICATION]` 残留。
   - user stories 是否可独立测试、是否标了 P1/P2/P3。
   - acceptance 是否可验证。
   - Assumptions 和 Edge Cases 是否显式记录。
-  - plan 是否引用 `research.md`、`data-model.md`、`contracts/`、`quickstart.md`。
+  - plan 是否包含 Research、Data Model、Contracts、Quickstart 决策。
   - plan 的 Constitution Check 是否完成、违规是否进入 Complexity Tracking。
   - tasks 是否有 dependency、parallel ownership、RED/GREEN、evidence。
   - P0 是否映射到 TC 和 evidence ref。
-- **需求质量层** `checklists/<domain>.md`：按领域生成的问题句条目（CHK 编号、质量维度标签、traceability 引用）。生成方法论、句式规则、校准问题见 `checklist-authoring-workflow.md`。
+- **需求质量层** `review.md`：按领域生成的问题句条目（CHK 编号、质量维度标签、traceability 引用）。生成方法论、句式规则、校准问题见 `checklist-authoring-workflow.md`。
 
 implement 开工前必须检查两层的完成度（Pre-flight 门禁，见 `subagent-execution-workflow.md`）。
-
-## Hooks / Presets / Extensions
-
-模板优先级：
-
-```text
-.specify/templates/overrides/
-  > .specify/presets/templates/
-  > .specify/extensions/templates/
-  > skill fallback templates
-```
-
-`overrides` 用于单项目定制；`presets` 用于组织或领域模板（如 platform-gateway preset，见 `vibe-engineering-constitution.md`）；`extensions` 用于新增阶段或外部系统集成。
-
-`.specify/extensions.yml` 可声明 hooks，每个事件支持多个 hook 并按 `priority` 排序执行（数字小的先执行）：
-
-```yaml
-hooks:
-  before_analyze:
-    - extension: security-review
-      command: security.check
-      description: Check secret handling before artifact analysis
-      priority: 10
-      optional: false
-  after_analyze:
-    - extension: issue-export
-      command: issues.create
-      description: Export high findings as tracker issues
-      priority: 20
-      optional: true
-  before_implement:
-    - extension: env-check
-      command: env.verify
-      description: Verify toolchain and dependencies before execution
-      priority: 10
-      optional: true
-  after_implement:
-    - extension: report-sync
-      command: report.push
-      description: Push test report to tracker after execution
-      priority: 10
-      optional: true
-```
-
-事件语义：`optional: false` 的 hook 自动执行；`optional: true` 的先询问用户；`enabled: false` 的静默跳过。
-
-当前脚本只报告 hooks 存在与否，不执行 hooks。真正执行 hook 前必须明确知道对应命令和权限边界。

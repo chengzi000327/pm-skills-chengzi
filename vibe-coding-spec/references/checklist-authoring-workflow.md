@@ -6,10 +6,10 @@ Checklist 是**需求的单元测试**：spec 是用英语写的代码，checkli
 
 | 层 | 文件 | 来源 | 检验对象 |
 |---|---|---|---|
-| 结构层 | `specs/###-slug/CHECKLIST.md` | `check_vibe_structure.py --write-checklist` 生成 | artifact 结构完整性、覆盖关系 |
-| 需求质量层 | `specs/###-slug/checklists/<domain>.md` | 按本工作流人工/agent 生成 | 需求本身的质量 |
+| 结构层 | `specs/###-slug/review.md` | `check_vibe_structure.py --write-checklist` 生成 | artifact 结构完整性、覆盖关系 |
+| 需求质量层 | `specs/###-slug/review.md` | 按本工作流人工/agent 生成 | 需求本身的质量 |
 
-需求质量层按领域拆文件：`checklists/ux.md`、`checklists/api.md`、`checklists/security.md`、`checklists/performance.md` 等。每个文件 15-40 条；候选条目超过 ~40 时合并重复项、把低影响 edge case 归并成单条。
+需求质量层集中写入 `review.md`。每个领域 15-40 条；候选条目超过 ~40 时合并重复项、把低影响 edge case 归并成单条。
 
 ## 生成前：最多 3 个校准问题
 
@@ -70,4 +70,4 @@ Checklist 是**需求的单元测试**：spec 是用英语写的代码，checkli
 
 ## 与 implement 的关系
 
-implement 开工前必须扫描 `checklists/` 统计完成度；有未完成项时暂停并要用户明确确认才继续（见 `subagent-execution-workflow.md` 的 Pre-flight 门禁）。
+implement 开工前必须扫描 `review.md` 统计完成度；有未完成项时暂停并要用户明确确认才继续（见 `subagent-execution-workflow.md` 的 Pre-flight 门禁）。

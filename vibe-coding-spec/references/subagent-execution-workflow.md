@@ -11,13 +11,10 @@ subagent 不继承主 session 的上下文和历史——主 agent 为它精确�
 按顺序检查，全部通过才开始执行任务：
 
 1. **分支保护**：未经用户明确同意，不得在 main/master 分支上开始实现。默认建 feature branch 或 worktree。
-2. **Checklist 完成度**：扫描 `specs/###-slug/CHECKLIST.md` 和 `checklists/*.md`，统计 total/done/open 并以表格呈现。存在未完成项时**暂停**，向用户列出并询问是否继续——只有明确的 yes/继续才放行，其他任何回答都停下。
-3. **Blocking clarification**：`clarify.md` 存在 blocking 级 open question 时不得开工。
+2. **Checklist 完成度**：扫描 `specs/###-slug/review.md`，统计 total/done/open 并以表格呈现。存在未完成项时**暂停**，向用户列出并询问是否继续——只有明确的 yes/继续才放行，其他任何回答都停下。
+3. **Blocking clarification**：`review.md` 存在 blocking 级 open question 时不得开工。
 4. **Plan gate**：`plan.md` 的两次 Constitution Check 都有记录、违规都有 Complexity Tracking 辩护。
 5. **Baseline**：运行基线验证命令，记录当前结果到 `run-state.json`。
-6. **Hooks**：处理 `.specify/extensions.yml` 的 `before_implement` hooks（`optional: false` 自动执行，`optional: true` 询问）。
-
-执行结束后处理 `after_implement` hooks，再进入 finish 流程。
 
 ## Continuous Execution 规则
 

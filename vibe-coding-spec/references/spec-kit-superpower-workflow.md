@@ -33,11 +33,11 @@ Use this mapping when combining spec-kit style development with superpower execu
 
 6. Implement
    Pre-flight gates first: branch protection, checklist completion scan,
-   blocking clarifications, constitution gates, baseline, before_implement hooks.
+   blocking clarifications, constitution gates, baseline verification.
    Then execute with superpower discipline: worktree, fresh subagent per task
    (or sequential self-execution fallback), question loop, per-task two-stage
    review, continuous execution, failure isolation, checkbox + run-state
-   tracking, tests, evidence. after_implement hooks on exit.
+   tracking, tests, evidence.
 
 7. Analyze
    Check spec/plan/tasks/checklist/code/tests consistency,
@@ -56,39 +56,32 @@ Use this mapping when combining spec-kit style development with superpower execu
 | Stage | Artifact | Suggested Path |
 |---|---|---|
 | Constitution | engineering rules (versioned) | `.specify/memory/constitution.md`（platform-gateway preset 见 `vibe-engineering-constitution.md`） |
-| Ingest | PRD or idea source | `specs/###-<slug>/prd-source.md` |
-| Trace | source mapping | `specs/###-<slug>/traceability.md` |
+| Ingest + Trace | PRD source and source mapping | `specs/###-<slug>/spec.md` |
 | State | execution state | `specs/###-<slug>/run-state.json` |
 | Specify | feature spec | `specs/###-<slug>/spec.md` |
-| Clarify | clarifications + coverage summary | `specs/###-<slug>/clarify.md` |
-| Research | technical findings | `specs/###-<slug>/research.md` |
-| Model | data model | `specs/###-<slug>/data-model.md` |
-| Contracts | external interfaces | `specs/###-<slug>/contracts/` |
-| Quickstart | validation scenario | `specs/###-<slug>/quickstart.md` |
+| Clarify | clarifications + coverage summary | `specs/###-<slug>/review.md` |
+| Research / Model / Contracts / Quickstart | design decisions and validation scenario | `specs/###-<slug>/plan.md` |
 | Plan | technical plan + Constitution Check + Complexity Tracking | `specs/###-<slug>/plan.md` |
 | Tasks | execution plan | `specs/###-<slug>/tasks.md` or `docs/superpowers/plans/<date>-<slug>.md` |
-| Checklist (structural) | artifact structure checks | `specs/###-<slug>/CHECKLIST.md` |
-| Checklist (requirement quality) | domain checklists, CHK items | `specs/###-<slug>/checklists/<domain>.md` |
-| Quality | test matrix | `quality/<version>/TEST_MATRIX.md` |
-| Report | test report | `quality/<version>/TEST_REPORT.md` |
-| Evidence | reports and artifacts | `quality/<version>/evidence/` |
-| Gate | release decision | `quality/<version>/RELEASE_GATE.md` |
+| Checklist / Quality / Report | checklist, test matrix, test report | `specs/###-<slug>/review.md` |
+| Evidence | reports and artifacts | `specs/###-<slug>/evidence/` |
+| Gate | release decision | `specs/###-<slug>/review.md` |
+| Audit | traceability, matrix, gate, decisions | `specs/###-<slug>/audit/` |
 | Agent context | long-lived tech decisions | `CLAUDE.md` / `AGENTS.md`（auto-managed 区块） |
 
 ## Handoff Rules
 
 - `spec.md` should answer what and why, not how. 未解决的歧义必须带 `[NEEDS CLARIFICATION]` 标记；采用的默认值必须进 Assumptions。
-- `prd-source.md` should preserve the original idea/PRD input or source path.
-- `traceability.md` should map `PRD-S###` rows to FR, SC, user stories, TC, tasks, evidence, or explicit out-of-scope/deferred rationale.
-- `clarify.md` should preserve open questions, resolved answers, and a coverage summary; blocking `Outstanding` 项阻塞 plan。
-- `research.md`, `data-model.md`, `contracts/`, and `quickstart.md` should be created before finalizing `plan.md`.
+- `spec.md` should preserve PRD source and map `PRD-S###` rows to FR, SC, user stories, TC, tasks, evidence, or explicit out-of-scope/deferred rationale when persistence is needed.
+- `review.md` should preserve open questions, resolved answers, coverage summary, checklist, test matrix, test report, and release gate; blocking `Outstanding` 项阻塞 plan。
+- `audit/` should exist only for compliance, audit, or formal release workflows where separate evidence-chain artifacts are useful.
+- `plan.md` should summarize research, data model, contracts, and quickstart decisions before tasks are finalized.
 - `plan.md` must record both Constitution Check gates; violations require Complexity Tracking justification.
 - `tasks.md` should be executable by an agent without rediscovering the plan; steps are single actions of 2-5 minutes.
 - Superpower plans should use phases, dependency order, `[P]` parallel markers, ownership tables, checkbox steps, file paths, requirement IDs, test case IDs, test commands, expected RED/GREEN results, evidence refs, and commit points.
 - `run-state.json` mirrors phase/task progress and anchors cross-session resume（见 `execution-state-and-resume.md`）。
-- `CHECKLIST.md` should act as unit tests for requirement quality.
+- `review.md` checklist should act as unit tests for requirement quality.
 - Release gate should be independent of test execution; it reads reports and evidence and decides readiness.
-- Template priority is `.specify/templates/overrides/` > `.specify/presets/templates/` > `.specify/extensions/templates/` > skill fallback.
 
 ## Prompt Pattern
 
