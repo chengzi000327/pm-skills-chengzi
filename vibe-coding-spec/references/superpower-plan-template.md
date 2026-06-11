@@ -2,6 +2,44 @@
 
 Use this template when turning a spec-kit plan into an executable agent plan.
 
+## 写作姿态
+
+写 plan 时假设执行者是：**熟练的开发者，但对本代码库零上下文，且品味存疑**。
+
+- 写清楚每个任务碰哪些文件、参考哪些文档、怎么测试。
+- 不要假设执行者知道项目惯例、工具链或领域知识——写出来。
+- 不要假设执行者会做好的测试设计——把测试代码直接写进任务。
+
+## 前置决策（写任务之前完成）
+
+### 1. Constitution Check（GATE，research 之前做第一次）
+
+对照项目 constitution（`.specify/memory/constitution.md` 或 `references/constitution-template.md` 生成的文件）逐条检查方案：
+
+- 通过：在 plan 里记录 "Constitution Check (pre-research): PASS"。
+- 违反任意一条：必须在 Complexity Tracking 表登记，否则不得继续。
+
+### 2. File Structure（分解决策先锁定）
+
+在拆任务之前，先列出会新建或修改的所有文件及各自职责。分解决策在这里锁定，不在写任务时临时发挥：
+
+- 每个文件一个清晰职责，边界和接口明确。
+- 一起变化的代码放在一起；按职责拆分，不按技术层拆分。
+- 已有代码库遵循既有模式；不要顺手做无关重构。
+
+### 3. Constitution Check（GATE，设计完成后做第二次）
+
+data-model、contracts、File Structure 定稿后再查一次 constitution。设计阶段引入的新违规同样进 Complexity Tracking。
+
+## 任务粒度规则
+
+- **一个 step = 一个动作 = 2-5 分钟**。"写失败测试"是一个 step，"运行确认失败"是另一个 step。
+- 一个 task 由 5-8 个 step 组成（RED/GREEN/验证/evidence/commit）。
+- 超过 5 分钟的 step 必须再拆。
+- 每个 step 都有明确的命令和预期输出，执行者不需要做任何决策。
+
+## 模板
+
 ```markdown
 # <Feature> Implementation Plan
 
@@ -13,6 +51,21 @@ Use this template when turning a spec-kit plan into an executable agent plan.
 
 State the user-visible outcome in one paragraph.
 
+## Constitution Check
+
+| Gate | Result | Date | Notes |
+|---|---|---|---|
+| Pre-research | PASS / VIOLATIONS | YYYY-MM-DD | |
+| Post-design | PASS / VIOLATIONS | YYYY-MM-DD | |
+
+## Complexity Tracking
+
+> 只在 Constitution Check 发现违规时填写。没有书面辩护的违规 = analyze CRITICAL。
+
+| Violation | Constitution Rule | Why Needed for This Feature | Simpler Alternative Rejected Because |
+|---|---|---|---|
+| 引入第二个 ORM | "one persistence layer" | 旧模块迁移期间共存 | 一次性迁移风险超出本期范围 |
+
 ## Architecture
 
 Explain where the feature fits:
@@ -22,6 +75,12 @@ Explain where the feature fits:
 - Client adapter impact:
 - Provider adapter impact:
 - Governance impact:
+
+## File Structure
+
+| Path | New/Modify | Responsibility |
+|---|---|---|
+| `src/feature/handler.py` | new | request handling only |
 
 ## Directory Impact
 
@@ -133,8 +192,10 @@ git commit -m "feat: implement <specific behavior>"
 
 - Each task must name exact files, requirement IDs, test case IDs, commands, and expected output.
 - Each code-changing task must include RED, GREEN, evidence, and commit steps.
+- Each step is one action of 2-5 minutes; split anything bigger.
 - Verification commands must be run fresh before any completion claim.
 - A passing test that was not observed failing first does not count as a regression test.
 - Keep unrelated refactors out of task execution.
-- Update checkbox status as work completes.
+- Update checkbox status as work completes; mirror progress into `run-state.json`（见 `execution-state-and-resume.md`）。
 - Store evidence under `quality/<version>/evidence/` when the task affects release confidence.
+- Constitution Check 两个 gate 都未记录结果的 plan 不允许进入 tasks。

@@ -334,6 +334,61 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
             "Create a constitution or document why this feature does not need one.",
         )
 
+    if not re.search(r"^#{2,3}\s+Constitution Check", texts["plan"], re.M):
+        add_finding(
+            findings,
+            "constitution",
+            "HIGH",
+            str(artifacts["plan"].relative_to(root)),
+            "plan.md has no Constitution Check gate section.",
+            "Add Constitution Check results for both gates (pre-research, post-design).",
+        )
+    elif re.search(r"VIOLATIONS?", texts["plan"]) and "Complexity Tracking" not in texts["plan"]:
+        add_finding(
+            findings,
+            "constitution",
+            "HIGH",
+            str(artifacts["plan"].relative_to(root)),
+            "plan.md reports constitution violations without a Complexity Tracking justification table.",
+            "Justify each violation: rule violated, why needed, why the simpler alternative was rejected.",
+        )
+
+    run_state_path = feature_dir / "run-state.json"
+    run_state: dict[str, object] | None = None
+    if not run_state_path.exists():
+        add_finding(
+            findings,
+            "lifecycle",
+            "MEDIUM",
+            f"{feature_dir.relative_to(root)}/run-state.json",
+            "run-state.json is missing; cross-session resume has no anchor.",
+            "Create run-state.json (see execution-state-and-resume.md) and update it with phase/task progress.",
+        )
+    else:
+        try:
+            run_state = json.loads(read(run_state_path))
+        except json.JSONDecodeError:
+            add_finding(
+                findings,
+                "lifecycle",
+                "HIGH",
+                f"{feature_dir.relative_to(root)}/run-state.json",
+                "run-state.json is not valid JSON.",
+                "Repair the file; resume protocol depends on it being machine-readable.",
+            )
+        if isinstance(run_state, dict):
+            done_tasks = {m.group(1) for m in re.finditer(r"^\s*-\s+\[[xX]\]\s+(?:\*\*)?(T\d{3})", texts["tasks"], re.M)}
+            last_done = run_state.get("lastCompletedTask")
+            if isinstance(last_done, str) and last_done and last_done not in done_tasks:
+                add_finding(
+                    findings,
+                    "lifecycle",
+                    "MEDIUM",
+                    f"{feature_dir.relative_to(root)}/run-state.json",
+                    f"run-state.json says {last_done} is complete but tasks.md checkbox does not confirm it.",
+                    "Reconcile run-state.json with tasks.md checkboxes; checkboxes plus git log are the source of truth.",
+                )
+
     for expected in ("research.md", "data-model.md", "contracts/", "quickstart.md"):
         if expected not in texts["plan"]:
             add_finding(
@@ -431,6 +486,11 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
         "hooks": hooks,
         "template_layers": templates,
         "checklist": {"open": checklist_open, "done": checklist_done},
+        "run_state": {
+            "present": run_state_path.exists(),
+            "phase": run_state.get("phase") if isinstance(run_state, dict) else None,
+            "lastCompletedTask": run_state.get("lastCompletedTask") if isinstance(run_state, dict) else None,
+        },
         "requirements": sorted(spec_reqs),
         "test_cases": sorted(matrix_cases),
         "task_markers": sorted(task_ids),

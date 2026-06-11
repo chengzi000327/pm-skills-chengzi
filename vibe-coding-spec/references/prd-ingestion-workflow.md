@@ -79,7 +79,10 @@ PRD-first：
 
 - 转成 measurable `SC-###`。
 - 转成 Given/When/Then acceptance。
-- 如果无法转，写入 `clarify.md` 的 blocking 或 non-blocking ambiguity。
+- 如果无法转，在 spec 对应条目打 `[NEEDS CLARIFICATION: ...]` 内联标记，并写入 `clarify.md` 的 blocking 或 non-blocking ambiguity。
+- 采用合理默认时写入 spec 的 Assumptions，不得静默假设。
+
+ingestion 完成后，`run-state.json` 的 `phase` 从 `ingest` 推进到 `specify`（scaffold 脚本传 `--prd` 时初始 phase 即为 `ingest`）。
 
 ## CLI
 

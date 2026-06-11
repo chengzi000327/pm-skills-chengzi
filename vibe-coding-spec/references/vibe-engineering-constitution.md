@@ -1,4 +1,8 @@
-# Vibe Engineering Constitution
+# Vibe Engineering Constitution (Platform-Gateway Preset)
+
+> **定位说明**：这是一个 **preset**，不是默认 constitution。它适用于"网关 + 多 client / 多 provider adapter"形态的平台型项目。其他项目类型（纯前端、CLI、数据管线、库等）应使用 `constitution-template.md` 引导生成自己的 constitution。建议安装位置：`.specify/presets/platform-gateway/`，或在生成项目 constitution 时引用其中适用的条款。
+>
+> 采用本 preset 时同样遵循 `constitution-template.md` 的版本治理规则（semver、Last Amended、修订程序、Constitution Check gate）。
 
 ## Directory Philosophy
 

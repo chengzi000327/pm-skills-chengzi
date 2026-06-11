@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import datetime
+import json
 import re
 from pathlib import Path
 
@@ -212,13 +214,14 @@ TODO: Describe the independently testable user journey.
 
 ### Edge Cases
 
-- TODO
+- What happens when TODO?
+- What happens when TODO fails midway?
 
 ## Requirements
 
 ### Functional Requirements
 
-- **FR-001**: TODO
+- **FR-001**: TODO [NEEDS CLARIFICATION: replace with the real requirement; keep this marker on any FR written with unresolved ambiguity]
 
 ### Key Entities
 
@@ -230,7 +233,7 @@ TODO: Describe the independently testable user journey.
 
 ## Assumptions
 
-- TODO
+- TODO (record reasonable defaults adopted where the source description lacked specificity)
 """))
 
     write_if_missing(feature_dir / "clarify.md", render_template(root, "clarify.md", context, f"""# {feature_name} Clarifications
@@ -352,7 +355,13 @@ TODO
 - [ ] Acceptance scenarios use Given/When/Then
 - [ ] Success criteria are measurable
 
+- [ ] Remaining `[NEEDS CLARIFICATION]` markers are zero before plan
+- [ ] Assumptions and edge cases are explicitly recorded
+
 ## Plan Quality
+
+- [ ] Constitution Check passed at both gates (pre-research, post-design)
+- [ ] All constitution violations are justified in Complexity Tracking
 
 - [ ] Architecture impact covers product control, platform core, client adapters, provider adapters, and governance
 - [ ] Directory impact names exact paths
@@ -420,9 +429,21 @@ Source: `specs/{branch}/quickstart.md`
 
 ## Constitution Check
 
-- [ ] Product/platform/client/provider boundaries are respected
+| Gate | Result | Date | Notes |
+|---|---|---|---|
+| Pre-research | TODO | TODO | |
+| Post-design | TODO | TODO | |
+
+- [ ] Project constitution rules are respected (boundaries, testing, dependency policy)
 - [ ] P0 behavior has test matrix coverage
 - [ ] Evidence type is identified for each P0 case
+
+## Complexity Tracking
+
+> Fill only when a Constitution Check gate reports violations. Unjustified violations block analyze.
+
+| Violation | Constitution Rule | Why Needed for This Feature | Simpler Alternative Rejected Because |
+|---|---|---|---|
 
 ## Architecture Impact
 
@@ -573,6 +594,27 @@ git commit -m "feat: TODO"
 - [ ] Secret scan passed
 - [ ] Untested scope documented
 """))
+
+    run_state_path = feature_dir / "run-state.json"
+    if not run_state_path.exists():
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        run_state = {
+            "feature": branch,
+            "version": args.version,
+            "phase": "ingest" if prd_path else "specify",
+            "phaseHistory": ["ingest"] if prd_path else [],
+            "lastCompletedTask": None,
+            "inProgressTask": None,
+            "blocked": False,
+            "blockedReason": None,
+            "lastVerification": None,
+            "constitutionCheck": {"preResearch": None, "postDesign": None},
+            "clarify": {"openBlocking": 0, "openNonBlocking": 0},
+            "worktree": None,
+            "updatedAt": now,
+        }
+        run_state_path.parent.mkdir(parents=True, exist_ok=True)
+        run_state_path.write_text(json.dumps(run_state, indent=2) + "\n", encoding="utf-8")
 
     write_if_missing(root / ".specify" / "extensions.yml", render_template(root, "extensions.yml", context, """# Optional extension hooks.
 # Hooks are advisory unless optional is false.
