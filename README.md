@@ -19,7 +19,19 @@
         该不该做           PRD v0+Eval     原型探索          PRD v1        规格+任务+release gate
 ```
 
-每个阶段都可以单独进入：有想法直接用 `idea-to-prd`，有现成 PRD 直接进 `vibe-coding-spec`，只要个页面直接用 `prd-to-frontend`。
+5 个 skill 构成一条**协作链**，每段交接都有固定契约，上游产出下游直接消费：
+
+| 交接 | 交接物 |
+|---|---|
+| product-decision → idea-to-prd | 方向交接卡（已确认/推断/待验证三档标注） |
+| idea-to-prd → prd-to-frontend | PRD v0 + S-## samples + 两图一表 |
+| prd-to-frontend → prd-writer | PRD 反哺清单（F-## 六类发现） |
+| prd-writer → vibe-coding-spec | PRD v1（FR-###/SC-### 编号、假设区、`[NEEDS CLARIFICATION]` 标记） |
+| vibe-coding-spec → 代码 | spec/plan/tasks + run-state + 测试证据 + release gate |
+
+全链统一三个约定：`[NEEDS CLARIFICATION]` 内联标记（歧义不静默）、Assumptions 假设区（推断不伪装成结论）、稳定编号（S/C/F/FR/SC 一路可追溯）。
+
+每个阶段也可以单独进入：有想法直接用 `idea-to-prd`，有现成 PRD 直接进 `vibe-coding-spec`，只要个页面直接用 `prd-to-frontend`。
 
 核心理念：**评测即需求**——PRD 必须带 Samples/Eval（没有 3-5 个 sample 不输出 PRD v0）；**evidence before claims**——实现必须带测试矩阵和发布门禁。
 

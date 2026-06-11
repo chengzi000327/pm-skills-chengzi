@@ -14,6 +14,13 @@ PRD-first：
 - 先做 ingestion，不要直接进入 plan。
 - 保留原文到 `prd-source.md`，再生成 `traceability.md`。
 
+协作链快速通道——如果 PRD 来自本合集的 `prd-writer`（特征：自带 FR-###/SC-### 编号、S-## sample 编号、假设区、`[NEEDS CLARIFICATION]` 标记、"当...时会发生什么"边界句式）：
+
+- **复用其 FR/SC 编号**，不要重新编号；traceability 直接建 `PRD-S### -> 既有 FR-###` 映射。
+- 其 `[NEEDS CLARIFICATION]` 标记直接进入 clarify 候选问题，其假设区直接进入 spec 的 Assumptions。
+- S-## samples 直接转 quickstart 场景和 TEST_MATRIX 行；F-##（反哺清单）条目检查是否已被吸收。
+- 模糊词检查通常可以快速通过（上游已做同词表转换），抽查即可。
+
 ## PRD-first 标准流程
 
 1. Preserve source

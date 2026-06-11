@@ -21,6 +21,8 @@ description: Use when writing a complete delivery PRD or PRD v1 from a clarified
 
 **两图一表不是附录。** 原型草图、流程/状态图、数据表要进入 PRD v1,并被细化成页面模块、流程节点、状态规则、字段、事件、验收和测试用例。
 
+**模糊词必须转可测量。** "高效、稳定、易用、安全、灵活、完善、尽快、快速、智能、自动、优化、提升体验、可扩展、高质量"这类词不允许直接出现在需求条目里:能量化的转成可测量成功标准(SC-###)或 Given/When/Then 验收;不能量化的在原位打 `[NEEDS CLARIFICATION: 缺什么]`,文末汇总。这份词表和 `vibe-coding-spec` 的 ingestion 检查一致——这里不转,下游也会被卡住。
+
 ## 工作流
 
 1. **判断输入成熟度。** 粗想法先转 `idea-to-prd`;已有 PRD v0 / 两图一表 / 原型 / 明确业务规则时继续。
@@ -69,4 +71,30 @@ description: Use when writing a complete delivery PRD or PRD v1 from a clarified
 - 章节最深到 `###`,除非用户明确要求更细。
 - 表格用 Markdown 表格;复杂结构给真实 JSON 示例。
 - 流程定义章节必须包含流程图和节点说明表。
-- 文末必须有待确认清单,汇总所有 `[TODO]` 和 `[待补充]`。
+- 文末必须有待确认清单,汇总所有 `[TODO]`、`[待补充]` 和 `[NEEDS CLARIFICATION]`。
+
+## 输出前自查:需求质量(像测需求一样测自己)
+
+PRD v1 是用中文写的代码,交付前用问题句自查一遍(不是测实现,是测需求写得好不好):
+
+- 每个功能的异常/失败路径都定义了吗?(完整性)
+- 还有没量化的模糊词吗?(清晰性)
+- 不同章节的规则有冲突吗?(一致性,如重试规则 vs 幂等假设)
+- 每条验收都能客观判定吗?(可测量性)
+- 正常/备选/异常/恢复四类场景都覆盖了吗?(覆盖度)
+- 所有假设都收进假设区了吗?有没有假设伪装成结论?
+
+发现问题就地修;修不了的打 `[NEEDS CLARIFICATION]` 进待确认清单。
+
+## 协作链:上下游契约
+
+**上游输入**:
+- `idea-to-prd` 的 PRD v0(沿用其 C-## 能力编号和 S-## sample 编号)。
+- `prd-to-frontend` 的 PRD 反哺清单(F-## 条目):逐条处理,每条要么吸收进对应章节、要么显式标记不采纳及理由,不允许静默丢弃。
+
+**下游交付**(让 `vibe-coding-spec` 的 PRD-first ingestion 可以直接映射,不需要重新发现结构):
+- 功能需求逐条编号 **FR-###**,成功标准逐条编号 **SC-###**,从 C-## / S-## 升级时在条目里注明来源编号。
+- 章节标题稳定,方便生成 `PRD-S###` 索引。
+- 边界条件用 "当...时会发生什么" 句式逐条写。
+- Samples/Eval、Rubric、Metric 保持结构化(下游会转成 quickstart、TEST_MATRIX acceptance 和 release gate)。
+- 假设区和 `[NEEDS CLARIFICATION]` 标记原样保留——下游 clarify 阶段直接消费,不要在交付前擅自抹平。

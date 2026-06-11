@@ -17,7 +17,7 @@ description: Use when turning a rough product idea into a PRD v0 or product defi
 
 - `product-decision`: 判断方向值不值得继续投入,适合更早期的方向验证和立项判断。
 - `idea-to-prd`: 把已经想继续探索的产品想法梳理成 PRD v0 + Samples/Eval + 两图一表。
-- `idea-to-frontend`: 基于 PRD v0 + 两图一表做界面/原型探索,本质是 PRD-to-Frontend。
+- `prd-to-frontend`: 基于 PRD v0 + 两图一表做界面/原型探索,本质是 PRD-to-Frontend。
 - `prd-writer`: 基于 PRD v0 + 两图一表 + 原型发现,整理完整交付型 PRD / PRD v1,本质是 Frontend-to-PRD。
 
 ## 核心原则
@@ -34,7 +34,7 @@ description: Use when turning a rough product idea into a PRD v0 or product defi
 
 **两图一表是高质量 Prompt 的载体。** 原型草图表达"心中构想的样子",流程/状态图表达业务模式和状态边界,数据表表达业务现状、指标、对象和漏斗。它们共同让 AI 快速理解产品。
 
-**每个结论都标出确定性。** 用户明确说过的写"已确认";合理推断写"推断";还缺信息写"待验证"。
+**每个结论都标出确定性。** 用户明确说过的写"已确认";合理推断写"推断";还缺信息写"待验证"。这三档和协作链全链路对齐:"推断"项必须同时进 PRD v0 的 **Assumptions(假设区)**;"待验证"且影响方案的,在正文对应位置打 `[NEEDS CLARIFICATION: 缺什么]` 内联标记——下游 `prd-writer` 和 `vibe-coding-spec` 会直接消费这些标记,不需要重新发现歧义。
 
 ## 流程
 
@@ -56,6 +56,10 @@ description: Use when turning a rough product idea into a PRD v0 or product defi
 ### 阶段 1:追问澄清
 
 进入本阶段先读 `references/questions.md`。一次问 2-4 个问题,优先用选择题降低用户负担。粗想法至少追问两轮,除非用户已经提供了完整背景。
+
+选择题呈现格式:2-4 个离散选项用列表或表格摆出,**你推荐的选项放最上面并给一句推荐理由**,用户答一个字母即可;答案会改变 PRD 走向的问题优先问,纯偏好型问题不问。
+
+如果上游有 `product-decision` 的方向交接卡,先读取:"已确认"项直接采用不重复问,只对"推断"和"待验证"项追问。
 
 必须问清楚:
 
@@ -111,7 +115,17 @@ description: Use when turning a rough product idea into a PRD v0 or product defi
 5. **图二:流程/状态图**:优先用 Mermaid 表达用户路径、业务 pipeline、状态边界、异常/回退路径。
 6. **一表:数据表**:根据场景选择业务对象表、漏斗/转化表、指标表、评测样本表或权限/角色表,让 AI 理解业务对象和评价标准。
 
-如果下一步适合做界面探索,明确建议进入 `idea-to-frontend` 做 PRD-to-Frontend;如果仍然缺关键验证,建议回到用户访谈、数据调研或 `product-decision`。
+如果下一步适合做界面探索,明确建议进入 `prd-to-frontend` 做 PRD-to-Frontend;如果仍然缺关键验证,建议回到用户访谈、数据调研或 `product-decision`。
+
+## 协作链:下游交接契约
+
+PRD v0 是 `prd-to-frontend` 和 `prd-writer` 的直接输入,输出时遵守:
+
+- 章节标题稳定(背景与问题 / 目标用户与核心场景 / 目标与非目标 / 核心假设 / 推荐方案与取舍 / MVP 范围 / 风险与待验证问题),下游按标题定位内容。
+- 共同能力清单逐条编号(C-01、C-02...),方便 `prd-writer` 升级成 FR-### 时保留对应关系。
+- 成功标准尽量可测量;暂时无法量化的,保留原话并打 `[NEEDS CLARIFICATION]`,不要硬编数字。
+- "推断"项集中收进 Assumptions 区;`[NEEDS CLARIFICATION]` 标记保留在正文原位,文末汇总一份清单。
+- Samples/Eval 的每个 case 带稳定编号(S-01、S-02...),下游用它做界面 demo 场景(`prd-to-frontend`)和测试集映射(`prd-writer`、`vibe-coding-spec`)。
 
 ## 禁止事项
 

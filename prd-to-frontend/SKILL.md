@@ -3,7 +3,7 @@ name: prd-to-frontend
 description: Use when turning a PRD v0 plus two diagrams and one table, clarified product direction, or explicit frontend request into a designed, previewable page, including landing pages, marketing sites, product websites, app screens, dashboards, and requests like "做个页面/界面/落地页/官网" or "先定设计风格". If product definition artifacts are missing, use idea-to-prd first.
 ---
 
-# Idea → Frontend(从想法到前端页面)
+# PRD → Frontend(从 PRD v0 到前端页面)
 
 把一个产品方向足够清楚的想法,经过四个阶段做成有设计感、可预览的前端页面。覆盖两类界面:**落地页 / 营销官网**(设计本身就是产品)和 **App / 产品功能界面**(设计服务于功能)——这两类的设计逻辑不同,在阶段 1 会区分对待。
 
@@ -92,7 +92,26 @@ description: Use when turning a PRD v0 plus two diagrams and one table, clarifie
 
 同时做 **Sample 状态自检**:逐条检查阶段 0 选定的 3-5 个 sample 是否都能在界面里跑通。常见 AI 客服/工单类界面至少覆盖:缺少订单信息、政策冲突、高风险升级、生成失败;其他产品按自己的 Rubric 风险点映射状态。
 
-同时输出一份 **PRD 反哺清单**:界面探索过程中暴露出来的信息架构调整、流程缺口、状态补充、边界条件、文案假设和指标变化。它是后续进入 `prd-writer` 写 PRD v1 的输入。
+同时输出一份 **PRD 反哺清单**——这是本 skill 对协作链的正式交接物,`prd-writer` 按固定字段直接消费,格式必须遵守:
+
+```markdown
+## PRD 反哺清单(prd-to-frontend -> prd-writer)
+| # | 类型 | 发现 | 涉及 Sample | 建议处理 |
+|---|---|---|---|---|
+| F-01 | 信息架构调整 | ... | S-02 | 修改 PRD 对应章节 |
+| F-02 | 流程缺口 | ... | S-04 | 新增状态/分支 |
+| F-03 | 状态补充 | ... | S-01,S-03 | 补状态规则 |
+| F-04 | 边界条件 | ... | - | 补异常 case |
+| F-05 | 文案假设 | ... | - | 待确认,标 [NEEDS CLARIFICATION] |
+| F-06 | 指标变化 | ... | - | 更新 Metric/验收 |
+```
+
+类型固定六种:信息架构调整 / 流程缺口 / 状态补充 / 边界条件 / 文案假设 / 指标变化。每条尽量挂到上游 PRD v0 的 Sample 编号(S-##);界面探索中靠猜补上的内容一律标 `[NEEDS CLARIFICATION]`,不要让假设伪装成结论流入 PRD v1。
+
+## 协作链:上下游契约
+
+- **上游输入**(阶段 0 检查的就是这份契约):`idea-to-prd` 产出的 PRD v0 + Samples/Eval(S-## 编号)+ 两图一表。samples 直接作为 demo 数据和状态校验用例,不要另编 mock。
+- **下游交付**:可预览页面/代码 + 上面格式的 PRD 反哺清单(F-## 编号)。说"可预览"之前必须真实打开或渲染过一次——evidence before claims。
 
 ---
 

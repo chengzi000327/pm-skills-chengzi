@@ -174,7 +174,7 @@ flowchart TD
 
 推荐下一步:
 
-- 进入 `idea-to-frontend` 做 PRD-to-Frontend / 界面原型探索
+- 进入 `prd-to-frontend` 做 PRD-to-Frontend / 界面原型探索
 - 或继续用户访谈 / 数据调研 / `product-decision`
 
 选择理由:
