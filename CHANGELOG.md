@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-11
+
+- `vibe-coding-spec` 改为默认不落盘：优先让 agent 遵循 SDD 工作方式，
+  不再把 spec-kit 工具链目录复制进用户项目。
+- `scaffold_vibe_feature.py` 调整为三档：
+  - 默认轻量包：`spec.md`、`plan.md`、`tasks.md`、`run-state.json`。
+  - `--full` compact SDD：额外生成 `review.md` 和 `evidence/`。
+  - `--audit` 审计包：额外生成 `audit/traceability.md`、`audit/test-matrix.md`、
+    `audit/release-gate.md`、`audit/decision-log.md`。
+- `check_vibe_structure.py` 支持 `lite` / `full` / `audit` profile，并兼容旧版 artifact 路径读取。
+- 同步更新 `vibe-coding-spec` references 和 README，明确 compact SDD 与 audit pack 的边界。
+- 新增 `tests/test_vibe_scaffold.py`，覆盖轻量、PRD、compact full、audit 四种脚手架输出。
+
 ## [1.0.1] - 2026-06-11
 
 - 新增 `CLAUDE.md`（仓库级 AI 上下文：不变量、验证方法、发布流程）和本 CHANGELOG，
