@@ -1,5 +1,5 @@
 ---
-name: idea-to-frontend
+name: prd-to-frontend
 description: Use when turning a PRD v0 plus two diagrams and one table, clarified product direction, or explicit frontend request into a designed, previewable page, including landing pages, marketing sites, product websites, app screens, dashboards, and requests like "做个页面/界面/落地页/官网" or "先定设计风格". If product definition artifacts are missing, use idea-to-prd first.
 ---
 
