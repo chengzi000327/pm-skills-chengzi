@@ -32,9 +32,12 @@ Use this mapping when combining spec-kit style development with superpower execu
    一个 step = 一个动作 = 2-5 分钟。可选导出 GitHub issues。
 
 6. Implement
-   Execute with superpower discipline: worktree, fresh subagent per task,
-   question loop, per-task two-stage review, continuous execution,
-   checkbox + run-state tracking, tests, evidence.
+   Pre-flight gates first: branch protection, checklist completion scan,
+   blocking clarifications, constitution gates, baseline, before_implement hooks.
+   Then execute with superpower discipline: worktree, fresh subagent per task
+   (or sequential self-execution fallback), question loop, per-task two-stage
+   review, continuous execution, failure isolation, checkbox + run-state
+   tracking, tests, evidence. after_implement hooks on exit.
 
 7. Analyze
    Check spec/plan/tasks/checklist/code/tests consistency,
@@ -64,7 +67,8 @@ Use this mapping when combining spec-kit style development with superpower execu
 | Quickstart | validation scenario | `specs/###-<slug>/quickstart.md` |
 | Plan | technical plan + Constitution Check + Complexity Tracking | `specs/###-<slug>/plan.md` |
 | Tasks | execution plan | `specs/###-<slug>/tasks.md` or `docs/superpowers/plans/<date>-<slug>.md` |
-| Checklist | requirement quality checks | `specs/###-<slug>/CHECKLIST.md` |
+| Checklist (structural) | artifact structure checks | `specs/###-<slug>/CHECKLIST.md` |
+| Checklist (requirement quality) | domain checklists, CHK items | `specs/###-<slug>/checklists/<domain>.md` |
 | Quality | test matrix | `quality/<version>/TEST_MATRIX.md` |
 | Report | test report | `quality/<version>/TEST_REPORT.md` |
 | Evidence | reports and artifacts | `quality/<version>/evidence/` |

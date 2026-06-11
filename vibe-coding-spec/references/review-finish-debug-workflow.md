@@ -2,15 +2,26 @@
 
 ## Brainstorming 分段确认
 
-不要一口气生成大规格。按顺序分段确认：
+**HARD-GATE：设计未呈现并获用户批准前，禁止写任何代码、scaffold 任何项目、调用任何实现流程。对每个项目都适用，无论看起来多简单。**
 
-1. 用户目标和非目标。
-2. P0 user stories。
-3. 数据和权限边界。
-4. 外部 contracts 和 adapter 影响。
-5. 测试矩阵和 release gate。
+反模式："这个太简单了，不需要设计。"——简单项目恰恰是未审视的假设浪费最多工作量的地方。设计可以只有几句话，但必须呈现并获批准。
 
-每段确认后再写入 artifact。用户明确要求直接生成时，可以先生成 draft，但必须标记假设（写入 spec 的 Assumptions），歧义处打 `[NEEDS CLARIFICATION]` 内联标记。
+流程：
+
+1. 先探索项目上下文（文件、文档、最近 commit），再开始提问。
+2. 澄清问题**一次只问一个**，搞清目标、约束、成功标准。
+3. **提出 2-3 个方案**，每个带 trade-offs，给出你的推荐和理由——不要只呈现一个方案。
+4. 方案选定后，按顺序分段确认设计：
+   - 用户目标和非目标。
+   - P0 user stories。
+   - 数据和权限边界。
+   - 外部 contracts 和 adapter 影响。
+   - 测试矩阵和 release gate。
+5. 每段确认后再写入 artifact。
+6. **Spec self-review**：spec 写完后、请用户审阅前，先自查一遍：占位符残留、自相矛盾、歧义、范围蔓延——发现就地修。
+7. 请用户审阅写好的 spec 文件，批准后才进入 plan。
+
+用户明确要求直接生成时，可以先生成 draft，但必须标记假设（写入 spec 的 Assumptions），歧义处打 `[NEEDS CLARIFICATION]` 内联标记，且 draft 仍需用户批准后才能进入实现。
 
 ## Code Review 关卡
 

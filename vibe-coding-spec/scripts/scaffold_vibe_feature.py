@@ -621,6 +621,19 @@ git commit -m "feat: TODO"
 hooks:
   before_analyze: []
   after_analyze: []
+  before_implement: []
+  after_implement: []
+"""))
+
+    write_if_missing(feature_dir / "checklists" / "README.md", render_template(root, "checklists/README.md", context, f"""# {feature_name} Requirement Quality Checklists
+
+Domain checklists generated per `checklist-authoring-workflow.md`.
+Items are questions about requirement quality (CHK-numbered, dimension-tagged, traceable),
+never implementation tests.
+
+| File | Focus | Depth | Items |
+|---|---|---|---|
+| (none yet) | | | |
 """))
 
     (quality_dir / "evidence").mkdir(parents=True, exist_ok=True)

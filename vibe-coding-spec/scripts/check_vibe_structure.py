@@ -475,6 +475,28 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
 
     checklist_open = len(re.findall(r"- \[ \]", texts["checklist"]))
     checklist_done = len(re.findall(r"- \[[xX]\]", texts["checklist"]))
+    domain_checklists: dict[str, dict[str, int]] = {}
+    checklists_dir = feature_dir / "checklists"
+    if checklists_dir.exists():
+        for chk_file in sorted(checklists_dir.glob("*.md")):
+            if chk_file.name == "README.md":
+                continue
+            chk_text = read(chk_file)
+            domain_checklists[chk_file.name] = {
+                "open": len(re.findall(r"- \[ \]", chk_text)),
+                "done": len(re.findall(r"- \[[xX]\]", chk_text)),
+            }
+            for line in chk_text.splitlines():
+                if re.match(r"^\s*-\s+\[[ xX]\]", line) and re.search(r"\b(verify|test|confirm)\b.*\b(works|correctly|returns)\b", line, re.I):
+                    add_finding(
+                        findings,
+                        "placeholder",
+                        "MEDIUM",
+                        f"{chk_file.relative_to(root)}:L{line_for(chk_text, line.strip())}",
+                        "Domain checklist item is implementation-focused, not a requirement quality question.",
+                        "Rephrase as a question about requirement quality (see checklist-authoring-workflow.md).",
+                    )
+                    break
     hooks = summarize_hooks(root)
     templates = template_layer_summary(root)
     summary = {
@@ -486,6 +508,7 @@ def analyze_artifacts(root: Path, feature_dir: Path | None, quality_version: str
         "hooks": hooks,
         "template_layers": templates,
         "checklist": {"open": checklist_open, "done": checklist_done},
+        "domain_checklists": domain_checklists,
         "run_state": {
             "present": run_state_path.exists(),
             "phase": run_state.get("phase") if isinstance(run_state, dict) else None,

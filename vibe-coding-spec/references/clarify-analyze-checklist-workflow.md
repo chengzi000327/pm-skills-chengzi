@@ -131,18 +131,20 @@ analyze 还必须人工检查脚本覆盖不到的语义问题：
 
 ## Checklist 规则
 
-`CHECKLIST.md` 是需求质量的单元测试，不是项目待办。
+Checklist 是需求质量的单元测试，不是项目待办，更不是实现测试计划。分两层：
 
-必须覆盖：
+- **结构层** `CHECKLIST.md`（脚本生成）必须覆盖：
+  - 规格是否没有占位符和 `[NEEDS CLARIFICATION]` 残留。
+  - user stories 是否可独立测试、是否标了 P1/P2/P3。
+  - acceptance 是否可验证。
+  - Assumptions 和 Edge Cases 是否显式记录。
+  - plan 是否引用 `research.md`、`data-model.md`、`contracts/`、`quickstart.md`。
+  - plan 的 Constitution Check 是否完成、违规是否进入 Complexity Tracking。
+  - tasks 是否有 dependency、parallel ownership、RED/GREEN、evidence。
+  - P0 是否映射到 TC 和 evidence ref。
+- **需求质量层** `checklists/<domain>.md`：按领域生成的问题句条目（CHK 编号、质量维度标签、traceability 引用）。生成方法论、句式规则、校准问题见 `checklist-authoring-workflow.md`。
 
-- 规格是否没有占位符和 `[NEEDS CLARIFICATION]` 残留。
-- user stories 是否可独立测试、是否标了 P1/P2/P3。
-- acceptance 是否可验证。
-- Assumptions 和 Edge Cases 是否显式记录。
-- plan 是否引用 `research.md`、`data-model.md`、`contracts/`、`quickstart.md`。
-- plan 的 Constitution Check 是否完成、违规是否进入 Complexity Tracking。
-- tasks 是否有 dependency、parallel ownership、RED/GREEN、evidence。
-- P0 是否映射到 TC 和 evidence ref。
+implement 开工前必须检查两层的完成度（Pre-flight 门禁，见 `subagent-execution-workflow.md`）。
 
 ## Hooks / Presets / Extensions
 
@@ -173,6 +175,20 @@ hooks:
       description: Export high findings as tracker issues
       priority: 20
       optional: true
+  before_implement:
+    - extension: env-check
+      command: env.verify
+      description: Verify toolchain and dependencies before execution
+      priority: 10
+      optional: true
+  after_implement:
+    - extension: report-sync
+      command: report.push
+      description: Push test report to tracker after execution
+      priority: 10
+      optional: true
 ```
+
+事件语义：`optional: false` 的 hook 自动执行；`optional: true` 的先询问用户；`enabled: false` 的静默跳过。
 
 当前脚本只报告 hooks 存在与否，不执行 hooks。真正执行 hook 前必须明确知道对应命令和权限边界。

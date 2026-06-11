@@ -6,6 +6,19 @@
 
 subagent 不继承主 session 的上下文和历史——主 agent 为它精确构造所需的全部上下文（任务全文、owned files、命令、项目约定）。这同时保护主 agent 自己的上下文用于协调工作。
 
+## Pre-flight 门禁（进入 implement 前）
+
+按顺序检查，全部通过才开始执行任务：
+
+1. **分支保护**：未经用户明确同意，不得在 main/master 分支上开始实现。默认建 feature branch 或 worktree。
+2. **Checklist 完成度**：扫描 `specs/###-slug/CHECKLIST.md` 和 `checklists/*.md`，统计 total/done/open 并以表格呈现。存在未完成项时**暂停**，向用户列出并询问是否继续——只有明确的 yes/继续才放行，其他任何回答都停下。
+3. **Blocking clarification**：`clarify.md` 存在 blocking 级 open question 时不得开工。
+4. **Plan gate**：`plan.md` 的两次 Constitution Check 都有记录、违规都有 Complexity Tracking 辩护。
+5. **Baseline**：运行基线验证命令，记录当前结果到 `run-state.json`。
+6. **Hooks**：处理 `.specify/extensions.yml` 的 `before_implement` hooks（`optional: false` 自动执行，`optional: true` 询问）。
+
+执行结束后处理 `after_implement` hooks，再进入 finish 流程。
+
 ## Continuous Execution 规则
 
 进入 implement 阶段后，**不要在任务之间停下来向用户汇报或请求确认**。"要继续吗？"和逐任务进度总结浪费用户时间——用户要求执行计划，就执行完。
@@ -93,6 +106,21 @@ Reviewer agent：
 - 共享接口、数据模型、contract 必须由一个 owner 先完成，其他任务依赖它。
 - 主 agent 负责整合结果、解决冲突、最终 fresh verification。
 - 并行任务各自走完两阶段 review 后，合流点再做一次集成验证。
+
+**失败隔离**：
+
+- 非并行（顺序）任务失败 → 立即 halt，给出描述性错误、调试上下文和建议的下一步。
+- `[P]` 并行组内某任务失败 → 不拖累同组其他任务，让成功的继续跑完，失败的统一报告；依赖失败任务的下游任务阻塞。
+- 同一任务修复两次仍失败 → 停止重试，转入 systematic debugging（见 `review-finish-debug-workflow.md`），不要换个写法再猜一次。
+
+## 无 subagent 环境的备用模式（顺序自执行）
+
+执行环境不支持派发 subagent 时，主 agent 退化为顺序自执行，规则改为：
+
+1. **先批判性 review 整个 plan**：有疑问或缺口先向用户提出，确认后再开工；没有疑虑才开始。
+2. 逐任务严格按 step 执行（plan 的 step 本来就是 2-5 分钟单动作），不跳过任何验证。
+3. 两阶段 review 由主 agent 换帽自查完成：先对照 FR/TC 做 spec 符合性检查，再用 quality checklist 过一遍 diff——自查容易放水，写下检查结论再继续。
+4. Pre-flight 门禁、continuous execution、失败隔离、final verification 规则全部不变。
 
 ## Worktree 隔离
 

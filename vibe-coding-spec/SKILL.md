@@ -60,16 +60,19 @@ Idea or PRD or Bug
    - `quickstart.md`：运行和验证步骤。
    - `plan.md`：Constitution Check 两个 gate、Complexity Tracking、架构、File Structure、目录影响、测试策略、证据策略。
    - `tasks.md`：phase、dependency、parallel ownership、`[P]` 标记、RED/GREEN、2-5 分钟 step、evidence、commit point。
-   - `CHECKLIST.md`、`TEST_MATRIX.md`、`TEST_REPORT.md`、`RELEASE_GATE.md`：质量检查、测试矩阵、报告和发布门禁。
+   - `CHECKLIST.md`（结构层）+ `checklists/<domain>.md`（需求质量层，CHK 问题句条目）、`TEST_MATRIX.md`、`TEST_REPORT.md`、`RELEASE_GATE.md`：质量检查、测试矩阵、报告和发布门禁。
    - plan 定稿后把长期技术决策增量同步到 agent context 文件（CLAUDE.md/AGENTS.md 的 auto-managed 区块）。
 
 4. **使用 superpower 执行纪律**
+   - **Brainstorming HARD-GATE**：设计未呈现并获用户批准前不写任何代码——对每个项目适用，无论多简单；澄清一次一问，方案给 2-3 个带 trade-offs 的选项。
+   - **Pre-flight 门禁**（进入 implement 前）：分支保护（未经同意不在 main/master 上实现）、checklist 完成度扫描（有未完成项暂停要用户确认）、blocking clarification 清零、constitution gate 有记录、baseline 验证、before_implement hooks。
    - 任务必须可逐项执行；写 plan 时假设执行者对代码库零上下文且品味存疑。
    - 一个 step = 一个动作 = 2-5 分钟；代码变更任务必须包含 expected RED failure 和 GREEN pass。
    - 每个任务写清 exact files、commands、expected output、evidence refs。
    - 可并行任务必须标记 `[P]`，且有 disjoint owned files。
-   - 多 agent 执行：每任务派 fresh subagent（用 `references/prompts/` 模板）、开工前 question loop、逐任务两阶段 review（spec -> quality）、全部完成后 final overall review；主 agent 负责整合、冲突处理、最终 fresh verification。
+   - 多 agent 执行：每任务派 fresh subagent（用 `references/prompts/` 模板）、开工前 question loop、逐任务两阶段 review（spec -> quality）、全部完成后 final overall review；主 agent 负责整合、冲突处理、最终 fresh verification。环境不支持 subagent 时退化为顺序自执行模式（先批判性 review plan 再开工）。
    - **Continuous execution**：implement 阶段任务之间不向用户请求确认，只在 BLOCKED、真歧义或全部完成时停。
+   - **失败隔离**：顺序任务失败立即 halt；`[P]` 组内失败不拖累其他并行任务；同一任务修两次仍失败转 systematic debugging。
    - 用 `- [ ]` / `- [x]` 追踪状态，并同步更新 `run-state.json`。
 
 5. **用证据收尾**
@@ -84,7 +87,8 @@ Idea or PRD or Bug
 - 完整 PRD 输入、PRD 拆分、source traceability：读 `references/prd-ingestion-workflow.md`。
 - 生成或修订 constitution、版本治理：读 `references/constitution-template.md`。
 - 平台网关类项目的目录、platform、adapter 规则（preset）：读 `references/vibe-engineering-constitution.md`。
-- clarify 九类扫描、analyze、checklist、hooks/presets/extensions：读 `references/clarify-analyze-checklist-workflow.md`。
+- clarify 九类扫描、analyze、checklist 两层结构、hooks/presets/extensions：读 `references/clarify-analyze-checklist-workflow.md`。
+- 生成领域需求质量 checklist（CHK 条目、句式规则、校准问题）：读 `references/checklist-authoring-workflow.md`。
 - plan/task 强格式、Constitution Check gate、Complexity Tracking、任务粒度：读 `references/superpower-plan-template.md`。
 - 多子 agent、question loop、两阶段 review、parallel ownership、worktree 隔离：读 `references/subagent-execution-workflow.md`。
 - 派发 subagent 的 prompt 模板：读 `references/prompts/`（implementer / spec-reviewer / code-quality-reviewer）。
@@ -127,3 +131,7 @@ python3 scripts/check_vibe_structure.py --root . --feature 001-feature-name --ve
 - 请求 release readiness 时，必须显式评估 `RELEASE_GATE.md`。
 - 收到 review 意见时遵循 receiving-review 纪律：存疑先验证，不盲改，不性能化附和。
 - 收尾时必须呈现 merge / PR / keep / discard 四个结构化选项，由用户决定。
+- 设计未获用户批准前不得进入实现（brainstorming HARD-GATE）；"太简单不需要设计"是反模式。
+- implement 开工前必须通过 Pre-flight 门禁；checklist 有未完成项时只有用户明确确认才放行。
+- 需求质量 checklist 条目必须是检验需求的问题句（带 CHK 编号、质量维度标签、traceability 引用），禁止实现导向句式。
+- 未经用户明确同意，不得在 main/master 分支上开始实现。
