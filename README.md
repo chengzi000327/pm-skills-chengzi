@@ -37,12 +37,29 @@
 
 ## 安装
 
+方式一：npx 直接从 GitHub 安装（推荐，无需 clone）：
+
+```bash
+npx github:chengzi000327/pm-skills-chengzi install
+```
+
+方式二：clone 后本地安装：
+
 ```bash
 git clone https://github.com/chengzi000327/pm-skills-chengzi.git
 cd pm-skills-chengzi
-
-cp -r product-decision idea-to-prd prd-to-frontend prd-writer vibe-coding-spec ~/.claude/skills/
+node bin/install.js install        # 或 npm run install-skills
 ```
+
+其他命令：
+
+```bash
+npx github:chengzi000327/pm-skills-chengzi list                          # 查看安装状态
+npx github:chengzi000327/pm-skills-chengzi install --only vibe-coding-spec  # 只装指定 skill
+npx github:chengzi000327/pm-skills-chengzi uninstall                     # 全部卸载
+```
+
+更新 skill：重跑一次 `install` 即覆盖更新。安装后重启 Claude Code 会话生效。
 
 ## 详细文档
 

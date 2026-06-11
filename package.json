@@ -1,0 +1,36 @@
+{
+  "name": "pm-skills-chengzi",
+  "version": "1.0.0",
+  "description": "PM skills collection for Claude Code: product-decision, idea-to-prd, prd-to-frontend, prd-writer, vibe-coding-spec — a collaboration chain from product direction to implementation spec.",
+  "bin": {
+    "pm-skills": "bin/install.js"
+  },
+  "files": [
+    "bin",
+    "product-decision",
+    "idea-to-prd",
+    "prd-to-frontend",
+    "prd-writer",
+    "vibe-coding-spec",
+    "README.md"
+  ],
+  "scripts": {
+    "install-skills": "node bin/install.js install"
+  },
+  "engines": {
+    "node": ">=16.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chengzi000327/pm-skills-chengzi.git"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-skills",
+    "product-management",
+    "prd",
+    "spec-driven-development"
+  ],
+  "author": "chengzi000327",
+  "license": "MIT"
+}
